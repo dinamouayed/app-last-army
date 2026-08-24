@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { GAME_CONFIG } from '../config/game';
-import { buildWorldDecorations } from '../world/EnvironmentSystem';
+import { buildWorldDecorations } from './EnvironmentSystem';
 
 const ROAD_HALF = GAME_CONFIG.camera.roadHalfWidth;
 

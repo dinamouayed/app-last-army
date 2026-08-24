@@ -5,7 +5,7 @@ export const GAME_CONFIG = {
   startingLane: 1 as LaneIndex,
   laneCount: 3,
   laneSpacing: 1,
-  forwardSpeed: 22,
+  forwardSpeed: 17,
   laneLerpSpeed: 18,
   swipeThresholdPx: 52,
   swipeHintDuration: 2.6,

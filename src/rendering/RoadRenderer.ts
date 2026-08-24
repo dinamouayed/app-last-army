@@ -106,6 +106,40 @@ function drawShoulder(
     farZ,
     resources.paints.roadShoulder,
   );
+  resources.paints.roadEdge.setAlphaf(0.55);
+  drawWorldQuad(
+    canvas,
+    resources.path,
+    cameraZ,
+    width,
+    height,
+    -inner,
+    nearZ,
+    -inner + 0.07,
+    nearZ,
+    -inner + 0.05,
+    farZ,
+    -inner - 0.02,
+    farZ,
+    resources.paints.roadEdge,
+  );
+  drawWorldQuad(
+    canvas,
+    resources.path,
+    cameraZ,
+    width,
+    height,
+    inner - 0.07,
+    nearZ,
+    inner,
+    nearZ,
+    inner + 0.02,
+    farZ,
+    inner - 0.05,
+    farZ,
+    resources.paints.roadEdge,
+  );
+  resources.paints.roadEdge.setAlphaf(1);
 }
 
 function drawIrregularPatch(
