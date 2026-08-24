@@ -1,0 +1,16 @@
+export const ENVIRONMENT_CONFIG = {
+  asphaltBandLength: 1.35,
+  grainSpacing: 3.4,
+  patchSpacing: 8.5,
+  crackSpacing: 15,
+  tireSpacing: 19,
+  stainSpacing: 13,
+  edgeSpacing: 4.2,
+  terrainSpacing: 6.5,
+  roadsideSpacing: 6.4,
+  distantSpacing: 12,
+  maxRoadDetails: 80,
+  maxRoadside: 40,
+  maxDistant: 28,
+  maxTerrain: 32,
+} as const;
