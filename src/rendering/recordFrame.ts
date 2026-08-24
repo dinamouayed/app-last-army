@@ -5,12 +5,15 @@ import { PALETTE } from '../game/config/palette';
 import { horizonY } from '../game/math/camera';
 import type { GameState } from '../game/types';
 import { drawArmy } from './ArmyRenderer';
+import { drawCombatEffects } from './EffectsRenderer';
+import { drawEnemies } from './EnemyRenderer';
 import { drawHomeScene } from './HomeSceneRenderer';
 import {
   applyGroundGradient,
   applySkyGradient,
   type RenderResources,
 } from './paints';
+import { drawProjectiles } from './ProjectileRenderer';
 import { drawWorld } from './WorldRenderer';
 
 function syncLayout(
@@ -49,7 +52,10 @@ export function recordFrame(
 ): SkPicture {
   const canvas = beginFrame(resources, width, height);
   drawWorld(canvas, resources, state, width, height);
+  drawEnemies(canvas, resources, state, width, height);
+  drawProjectiles(canvas, resources, state, width, height);
   drawArmy(canvas, resources, state, width, height);
+  drawCombatEffects(canvas, resources, state, width, height);
   return resources.recorder.finishRecordingAsPicture();
 }
 

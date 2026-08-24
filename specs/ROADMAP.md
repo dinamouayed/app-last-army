@@ -42,13 +42,13 @@ Status values:
 
 # Current Status
 
-**Current phase:** Phase 1.5 — Foundation Polish
+**Current phase:** Phase 3 — Army System
 
 **Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
 
-Phase 1.5 controls, camera, soldier, HUD, battlefield art direction, and stylized asphalt / environment materials are implemented.
+Phase 1, Phase 1.5 and Phase 2 are validated. Phase 3 army system (logical crowd, formation, army damage, game over) is implemented and waiting for manual validation.
 
-Do NOT start Phase 2 until Phase 1.5 has been manually validated.
+Do NOT start Phase 4 until Phase 3 has been manually validated.
 
 ---
 
@@ -92,7 +92,7 @@ These are addressed by Phase 1.5:
 
 # Phase 1.5 — Foundation Polish
 
-**Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
+**Status:** 🟢 VALIDATED
 
 ## Objective
 
@@ -161,25 +161,25 @@ Fix the fundamental controls, perspective and visual foundation before introduci
 
 Before Phase 2:
 
-* [ ] Test LEFT → CENTER
-* [ ] Test CENTER → RIGHT
-* [ ] Test RIGHT → CENTER
-* [ ] Test CENTER → LEFT
-* [ ] Verify large swipes never skip a lane
-* [ ] Verify road no longer visually curves
-* [ ] Verify soldier is immediately recognizable
-* [ ] Verify perspective feels coherent
-* [ ] Verify environment reads as a battlefield, not a countryside
-* [ ] Verify game maintains smooth performance
+* [x] Test LEFT → CENTER
+* [x] Test CENTER → RIGHT
+* [x] Test RIGHT → CENTER
+* [x] Test CENTER → LEFT
+* [x] Verify large swipes never skip a lane
+* [x] Verify road no longer visually curves
+* [x] Verify soldier is immediately recognizable
+* [x] Verify perspective feels coherent
+* [x] Verify environment reads as a battlefield, not a countryside
+* [x] Verify game maintains smooth performance
 * [x] Run TypeScript checks
 * [x] Run tests
-* [ ] Manual validation on iOS simulator/device
+* [x] Manual validation on iOS simulator/device
 
 ---
 
 # Phase 2 — Shooting & First Enemy
 
-**Status:** ⬜ NOT STARTED
+**Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
 
 ## Objective
 
@@ -187,23 +187,23 @@ Introduce the first actual combat loop.
 
 ## Shooting
 
-* [ ] Automatic continuous shooting
-* [ ] Projectile system
-* [ ] Projectile movement
-* [ ] Weapon fire rate
-* [ ] Weapon damage
-* [ ] Muzzle feedback
+* [x] Automatic continuous shooting
+* [x] Projectile system
+* [x] Projectile movement
+* [x] Weapon fire rate
+* [x] Weapon damage
+* [x] Muzzle feedback
 
 ## Enemy
 
-* [ ] Basic enemy type
-* [ ] Enemy spawning
-* [ ] Enemy movement toward army
-* [ ] Enemy HP
-* [ ] Projectile → enemy collisions
-* [ ] Enemy damage
-* [ ] Enemy death
-* [ ] Basic hit/death feedback
+* [x] Basic enemy type
+* [x] Enemy spawning
+* [x] Enemy movement toward army
+* [x] Enemy HP
+* [x] Projectile → enemy collisions
+* [x] Enemy damage
+* [x] Enemy death
+* [x] Basic hit/death feedback
 
 ## Validation
 
@@ -217,31 +217,46 @@ The player must be able to:
 6. kill it;
 7. continue running.
 
+Manual validation is still required before Phase 3.
+
 ---
 
 # Phase 3 — Army System
 
-**Status:** ⬜ NOT STARTED
+**Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
 
 ## Objective
 
 Transform the single soldier into a scalable army.
 
-* [ ] Logical `armySize`
-* [ ] Start with 1 soldier
-* [ ] Dynamic visual crowd
-* [ ] Formation generation
-* [ ] Formation changes with army size
-* [ ] Separate logical and visible soldier counts
-* [ ] Maximum visible soldier cap
-* [ ] Efficient rendering of many soldiers
-* [ ] Army damage
-* [ ] Soldier removal/death visualization
-* [ ] Game over when `armySize <= 0`
+* [x] Logical `armySize`
+* [x] Start with 1 soldier
+* [x] Dynamic visual crowd
+* [x] Formation generation
+* [x] Formation changes with army size
+* [x] Separate logical and visible soldier counts
+* [x] Maximum visible soldier cap
+* [x] Efficient rendering of many soldiers
+* [x] Army damage
+* [x] Soldier removal/death visualization
+* [x] Game over when `armySize <= 0`
 
 ## Performance requirement
 
 A logical army containing hundreds or thousands of soldiers must NOT require rendering the same number of individual soldiers.
+
+## Phase 3 corrective pass (pre-Phase 4)
+
+* [x] Wedge formation (front narrow, rear deep)
+* [x] Physical enemy/army footprint collisions
+* [x] Contact combat with repeated attacks
+* [x] Continuous enemy X positioning
+* [x] Grouped Basic Enemy spawning
+* [x] Corrected encounter pacing / approach speed
+* [x] Lane-concentrated firing corridor (no road-wide volleys)
+* [x] Road-bounded enemy spawning
+* [x] Enemy approaching / engaging / attacking state machine
+* [x] No pass-through at army contact boundary
 
 ---
 
@@ -565,8 +580,8 @@ The intended core loop remains:
 
 Manually validate:
 
-**Phase 1.5 — Foundation Polish**
+**Phase 2 — Shooting & First Enemy**
 
 Then, and only then:
 
-**Phase 2 — Shooting & First Enemy**
+**Phase 3 — Army System**

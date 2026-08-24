@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { PanResponder, StyleSheet, Text, View } from 'react-native';
 
 import { ExitButton } from '../components/ExitButton';
+import { DevArmyControls } from '../components/DevArmyControls';
 import { HUD } from '../components/HUD';
 import { PALETTE } from '../game/config/palette';
 import { GameSession } from '../game/engine/GameSession';
@@ -61,6 +62,7 @@ export function GameScreen({ onGameOver, onExit }: GameScreenProps) {
         hasChangedLane={hud.hasChangedLane}
       />
       <ExitButton onPress={onExit} />
+      <DevArmyControls session={sessionRef.current} />
       {__DEV__ ? (
         <Text style={styles.fps}>{Math.round(hud.fps)} FPS</Text>
       ) : null}

@@ -1,6 +1,7 @@
 {
   "name": "app-last-army",
   "version": "1.0.0",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "main": "index.ts",
   "dependencies": {
     "@shopify/react-native-skia": "2.6.2",

@@ -56,6 +56,19 @@ export interface Paints {
   soldierHelmet: SkPaint;
   soldierGun: SkPaint;
   soldierGunMetal: SkPaint;
+  enemyUniform: SkPaint;
+  enemyUniformDark: SkPaint;
+  enemyHelmet: SkPaint;
+  enemyPants: SkPaint;
+  muzzleFlash: SkPaint;
+  muzzleCore: SkPaint;
+  tracer: SkPaint;
+  tracerCore: SkPaint;
+  hpBack: SkPaint;
+  hpFill: SkPaint;
+  hitFlash: SkPaint;
+  particle: SkPaint;
+  contact: SkPaint;
   hint: SkPaint;
 }
 
@@ -134,6 +147,19 @@ export function createRenderResources(): RenderResources {
       soldierHelmet: fillPaint(PALETTE.soldierHelmet),
       soldierGun: fillPaint(PALETTE.soldierGun),
       soldierGunMetal: fillPaint(PALETTE.soldierGunMetal),
+      enemyUniform: fillPaint(PALETTE.enemyUniform),
+      enemyUniformDark: fillPaint(PALETTE.enemyUniformDark),
+      enemyHelmet: fillPaint(PALETTE.enemyHelmet),
+      enemyPants: fillPaint(PALETTE.enemyPants),
+      muzzleFlash: fillPaint(PALETTE.muzzleFlash),
+      muzzleCore: fillPaint(PALETTE.muzzleCore),
+      tracer: strokePaint(PALETTE.tracer, 4.2),
+      tracerCore: strokePaint(PALETTE.tracerCore, 2.1),
+      hpBack: fillPaint(PALETTE.hpBack),
+      hpFill: fillPaint(PALETTE.hpFill),
+      hitFlash: fillPaint(PALETTE.hitFlash),
+      particle: fillPaint(PALETTE.particle),
+      contact: fillPaint(PALETTE.contact),
       hint: fillPaint(PALETTE.hint),
     },
   };

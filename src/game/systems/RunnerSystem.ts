@@ -1,5 +1,5 @@
+import { checkArmyGameOver } from '../army/armyState';
 import type { GameConfig } from '../config/game';
-import { isGameOver } from '../math/format';
 import { interpolateToward, laneIndexToX } from '../math/lanes';
 import type { GameState } from '../types';
 
@@ -23,8 +23,5 @@ export function updateRunner(
     config.laneLerpSpeed,
   );
 
-  if (isGameOver(state.armySize)) {
-    state.status = 'gameover';
-    state.armySize = 0;
-  }
+  checkArmyGameOver(state);
 }

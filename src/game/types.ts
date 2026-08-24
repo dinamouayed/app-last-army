@@ -1,8 +1,11 @@
+import type { CombatState } from './entities/combat';
+import type { FormationSlot, DyingSoldierVisual } from './army/formation';
+
 export type LaneIndex = 0 | 1 | 2;
 
 export type GameStatus = 'running' | 'paused' | 'gameover';
 
-export interface GameState {
+export interface GameState extends CombatState {
   status: GameStatus;
   elapsed: number;
   distance: number;
@@ -10,6 +13,14 @@ export interface GameState {
   targetLane: LaneIndex;
   armyX: number;
   hasChangedLane: boolean;
+  visibleCount: number;
+  formationBuiltFor: number;
+  formationSlots: FormationSlot[];
+  armyHitFlash: number;
+  armyDeathPulse: number;
+  armyShake: number;
+  fireOriginIndex: number;
+  dyingVisuals: DyingSoldierVisual[];
 }
 
 export interface InputState {
