@@ -69,6 +69,19 @@ export interface Paints {
   hitFlash: SkPaint;
   particle: SkPaint;
   contact: SkPaint;
+  gatePositive: SkPaint;
+  gatePositiveGlow: SkPaint;
+  gatePositiveFrame: SkPaint;
+  gateNegative: SkPaint;
+  gateNegativeGlow: SkPaint;
+  gateNegativeFrame: SkPaint;
+  gateMultiply: SkPaint;
+  gateMultiplyGlow: SkPaint;
+  gateMultiplyFrame: SkPaint;
+  gateLabel: SkPaint;
+  gateLabelShadow: SkPaint;
+  gateParticlePositive: SkPaint;
+  gateParticleNegative: SkPaint;
   hint: SkPaint;
 }
 
@@ -160,6 +173,19 @@ export function createRenderResources(): RenderResources {
       hitFlash: fillPaint(PALETTE.hitFlash),
       particle: fillPaint(PALETTE.particle),
       contact: fillPaint(PALETTE.contact),
+      gatePositive: fillPaint(PALETTE.gatePositive),
+      gatePositiveGlow: fillPaint(PALETTE.gatePositiveGlow),
+      gatePositiveFrame: strokePaint(PALETTE.gatePositiveFrame, 4),
+      gateNegative: fillPaint(PALETTE.gateNegative),
+      gateNegativeGlow: fillPaint(PALETTE.gateNegativeGlow),
+      gateNegativeFrame: strokePaint(PALETTE.gateNegativeFrame, 4),
+      gateMultiply: fillPaint(PALETTE.gateMultiply),
+      gateMultiplyGlow: fillPaint(PALETTE.gateMultiplyGlow),
+      gateMultiplyFrame: strokePaint(PALETTE.gateMultiplyFrame, 4),
+      gateLabel: fillPaint(PALETTE.gateLabel),
+      gateLabelShadow: fillPaint(PALETTE.gateLabelShadow),
+      gateParticlePositive: fillPaint(PALETTE.gatePositiveGlow),
+      gateParticleNegative: fillPaint(PALETTE.gateNegativeGlow),
       hint: fillPaint(PALETTE.hint),
     },
   };

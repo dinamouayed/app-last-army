@@ -262,23 +262,23 @@ A logical army containing hundreds or thousands of soldiers must NOT require ren
 
 # Phase 4 — Math Gates
 
-**Status:** ⬜ NOT STARTED
+**Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
 
 ## Objective
 
 Introduce the primary army-growth decision mechanic.
 
-* [ ] `+N` gates
-* [ ] `-N` gates
-* [ ] `×N` gates
-* [ ] Gate rendering
-* [ ] Gate values
-* [ ] Gate collision
-* [ ] Apply arithmetic operation to army
-* [ ] Positive/negative visual distinction
-* [ ] Procedural gate choices
-* [ ] Prevent obviously impossible gate combinations
-* [ ] Gate activation feedback
+* [x] `+N` gates
+* [x] `-N` gates
+* [x] `×N` gates
+* [x] Gate rendering
+* [x] Gate values
+* [x] Gate collision
+* [x] Apply arithmetic operation to army
+* [x] Positive/negative visual distinction
+* [x] Procedural gate choices
+* [x] Prevent obviously impossible gate combinations
+* [x] Gate activation feedback
 
 ---
 

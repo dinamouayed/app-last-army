@@ -91,6 +91,7 @@ function spawnArmyLossParticles(
       vz: 0,
       life: 0,
       maxLife: COMBAT_CONFIG.particleLife,
+      kind: 'default' as const,
     } satisfies Particle));
     if (!particle) {
       return;
@@ -190,4 +191,24 @@ export function setArmySize(state: GameState, size: number): void {
     return;
   }
   removeSoldiers(state, state.armySize - clamped);
+}
+
+export function multiplyArmySize(
+  state: GameState,
+  factor: number,
+  contactX: number,
+  contactZ: number,
+): void {
+  if (state.status !== 'running' || factor <= 0) {
+    return;
+  }
+  const newSize = Math.max(0, Math.floor(state.armySize * factor));
+  if (newSize === state.armySize) {
+    return;
+  }
+  if (newSize > state.armySize) {
+    addSoldiers(state, newSize - state.armySize);
+    return;
+  }
+  removeSoldiers(state, state.armySize - newSize, contactX, contactZ);
 }

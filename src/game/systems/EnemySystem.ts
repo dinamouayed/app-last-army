@@ -158,6 +158,7 @@ export function spawnDeathParticles(state: GameState, x: number, z: number): voi
       vz: 0,
       life: 0,
       maxLife: COMBAT_CONFIG.particleLife,
+      kind: 'default' as const,
     } satisfies Particle));
     if (!particle) {
       return;

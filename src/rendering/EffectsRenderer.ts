@@ -53,7 +53,13 @@ export function drawCombatEffects(
     );
     const life = Math.max(0, particle.life / particle.maxLife);
     const size = (3.5 + (1 - life) * 3) * point.scale;
-    resources.paints.particle.setAlphaf(0.75 * life);
+    const paint =
+      particle.kind === 'gatePositive'
+        ? resources.paints.gateParticlePositive
+        : particle.kind === 'gateNegative'
+          ? resources.paints.gateParticleNegative
+          : resources.paints.particle;
+    paint.setAlphaf(0.75 * life);
     canvas.drawOval(
       {
         x: point.screenX - size,
@@ -61,8 +67,10 @@ export function drawCombatEffects(
         width: size * 2,
         height: size * 2,
       },
-      resources.paints.particle,
+      paint,
     );
   }
   resources.paints.particle.setAlphaf(1);
+  resources.paints.gateParticlePositive.setAlphaf(1);
+  resources.paints.gateParticleNegative.setAlphaf(1);
 }

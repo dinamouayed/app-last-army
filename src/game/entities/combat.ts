@@ -40,6 +40,7 @@ export interface Particle {
   vz: number;
   life: number;
   maxLife: number;
+  kind: 'default' | 'gatePositive' | 'gateNegative';
 }
 
 export interface CombatState {
