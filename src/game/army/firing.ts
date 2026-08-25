@@ -15,6 +15,15 @@ export function clampToFireCorridor(offsetX: number, halfWidth: number = ARMY_CO
   return Math.max(-halfWidth, Math.min(halfWidth, offsetX));
 }
 
+/** World X snapped to the offensive corridor of the army's selected lane. */
+export function clampWorldXToFireCorridor(
+  worldX: number,
+  armyX: number,
+  halfWidth: number = ARMY_CONFIG.fireCorridorHalfWidth,
+): number {
+  return armyX + clampToFireCorridor(worldX - armyX, halfWidth);
+}
+
 /** Bounded count of projectile spawns per volley — clustered, not road-wide. */
 export function firingOriginCount(armySize: number): number {
   if (armySize <= 1) {
@@ -52,10 +61,7 @@ export function getArmyFiringOrigins(
   options: FiringOriginOptions = {},
 ): FiringOrigin[] {
   const contactOffsets = options.contactOffsetX ?? [];
-  const inContact = contactOffsets.length > 0;
-  const corridorHalf = inContact
-    ? ARMY_CONFIG.contactFireCorridorHalfWidth
-    : ARMY_CONFIG.fireCorridorHalfWidth;
+  const corridorHalf = ARMY_CONFIG.fireCorridorHalfWidth;
   const count = Math.min(firingOriginCount(armySize), ARMY_CONFIG.maxFiringOrigins);
   const frontIndices = sortedSlotIndices(formationSlots);
   const maxDepth = ARMY_CONFIG.maxFiringFormationDepth;
@@ -70,7 +76,7 @@ export function getArmyFiringOrigins(
     if (!slot?.active || slot.dying || slot.depth > maxDepth) {
       continue;
     }
-    if (!inContact && Math.abs(slot.offsetX) > corridorHalf) {
+    if (Math.abs(slot.offsetX) > corridorHalf) {
       continue;
     }
     candidates.push({

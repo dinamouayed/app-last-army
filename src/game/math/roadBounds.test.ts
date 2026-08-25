@@ -10,18 +10,18 @@ import {
   clampWorldXToLane,
   clampWorldXToRoad,
   getRoadWorldBounds,
+  nearestAsphaltLane,
 } from './roadBounds';
 
 describe('asphalt lanes', () => {
   const { camera } = GAME_CONFIG;
   const margin = COMBAT_CONFIG.enemyRoadMargin + COMBAT_CONFIG.enemyVisualHalfWidth;
 
-  it('splits the road into three equal world-space thirds', () => {
+  it('maps world X to the nearest asphalt third', () => {
     const width = asphaltLaneWidth(camera);
-    expect(width).toBeCloseTo((2 * camera.roadHalfWidth) / 3, 8);
-    expect(asphaltLaneCenterX(0, camera)).toBeCloseTo(-width, 8);
-    expect(asphaltLaneCenterX(1, camera)).toBeCloseTo(0, 8);
-    expect(asphaltLaneCenterX(2, camera)).toBeCloseTo(width, 8);
+    expect(nearestAsphaltLane(-width, camera)).toBe(0);
+    expect(nearestAsphaltLane(0, camera)).toBe(1);
+    expect(nearestAsphaltLane(width, camera)).toBe(2);
   });
 
   it('keeps each lane center inside the asphalt with the enemy body margin', () => {

@@ -7,7 +7,7 @@ export interface WeaponConfig {
   fireRate: number;
   projectileSpeed: number;
   projectileCount: number;
-  /** Max lateral velocity ratio (vx = spread * speed). */
+  /** Max lateral spawn offset in world units — stays inside the selected lane. */
   spread: number;
 }
 

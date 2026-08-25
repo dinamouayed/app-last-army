@@ -50,6 +50,7 @@ export default function App() {
           bestDistance={bestDistance}
           isNewBest={isNewBest}
           onPlayAgain={startRun}
+          onMenu={() => setScreen('home')}
         />
       ) : null}
     </>

@@ -1,8 +1,10 @@
 import { COMBAT_CONFIG } from '../config/combat';
+import { GAME_CONFIG } from '../config/game';
 import { GATE_CONFIG } from '../config/gates';
 import type { GameState } from '../types';
 import { isWeaponGate } from '../entities/gates';
 import { segmentCircleHitT } from '../math/collision';
+import { nearestAsphaltLane } from '../math/roadBounds';
 import {
   buildArmyFootprintForState,
   isEnemyInArmyContact,
@@ -33,6 +35,10 @@ function enemyHitRadius(enemy: { radius: number }, inContact: boolean): number {
   return enemy.radius;
 }
 
+function onSameLane(ax: number, bx: number): boolean {
+  return nearestAsphaltLane(ax, GAME_CONFIG.camera) === nearestAsphaltLane(bx, GAME_CONFIG.camera);
+}
+
 function findBestBossHit(
   state: GameState,
   prevX: number,
@@ -49,6 +55,9 @@ function findBestBossHit(
   const inContact = boss.behavior === 'fighting'
     ? enemyOverlapsArmyFootprint(boss.x, boss.z, boss.radius, footprint)
     : false;
+  if (!inContact && !onSameLane(x, boss.x)) {
+    return null;
+  }
   const hitRadius = inContact
     ? boss.radius + COMBAT_CONFIG.contactProjectileHitBonus
     : boss.radius;
@@ -85,6 +94,9 @@ function findBestEnemyHit(
       continue;
     }
     const inContact = isEnemyInArmyContact(enemy, footprint);
+    if (!inContact && !onSameLane(x, enemy.x)) {
+      continue;
+    }
     const t = segmentCircleHitT(
       prevX,
       prevZ,
@@ -143,6 +155,9 @@ function findBestGateHit(
   for (let g = 0; g < state.gates.length; g += 1) {
     const gate = state.gates[g];
     if (!gate || !isHittableGate(gate)) {
+      continue;
+    }
+    if (!onSameLane(x, gate.x)) {
       continue;
     }
     const t = segmentCircleHitT(

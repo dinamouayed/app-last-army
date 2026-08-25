@@ -1,6 +1,7 @@
 import {
   armyDamageMultiplier,
   armyFireRateMultiplier,
+  clampWorldXToFireCorridor,
   getArmyFiringOrigins,
 } from '../army/firing';
 import { getContactEnemyOffsetXs } from '../army/contactFiring';
@@ -89,18 +90,20 @@ export function fireCurrentWeapon(
   if (multiPellet) {
     const origin = origins[start];
     if (origin) {
-      const originX = state.armyX + origin.offsetX + COMBAT_CONFIG.muzzleWorldX;
       const originZ = baseZ + origin.offsetZ * 0.35;
       for (let p = 0; p < weapon.projectileCount; p += 1) {
         const spreadX = pelletSpreadOffset(p, weapon.projectileCount, weapon.spread, rng);
-        const vx = spreadX * weapon.projectileSpeed;
+        const originX = clampWorldXToFireCorridor(
+          state.armyX + origin.offsetX + COMBAT_CONFIG.muzzleWorldX + spreadX,
+          state.armyX,
+        );
         const projectile = spawnProjectile(
           state,
-          originX + spreadX * 0.08,
+          originX,
           originZ,
           damage,
           weapon.projectileSpeed,
-          vx,
+          0,
         );
         if (!first && projectile) {
           first = projectile;
@@ -116,17 +119,18 @@ export function fireCurrentWeapon(
       }
       const spreadX =
         weapon.spread > 0 ? (rng() * 2 - 1) * weapon.spread : 0;
-      const originX =
-        state.armyX + origin.offsetX + COMBAT_CONFIG.muzzleWorldX + spreadX * 0.08;
+      const originX = clampWorldXToFireCorridor(
+        state.armyX + origin.offsetX + COMBAT_CONFIG.muzzleWorldX + spreadX,
+        state.armyX,
+      );
       const originZ = baseZ + origin.offsetZ * 0.35;
-      const vx = spreadX * weapon.projectileSpeed;
       const projectile = spawnProjectile(
         state,
         originX,
         originZ,
         damage,
         weapon.projectileSpeed,
-        vx,
+        0,
       );
       if (!first && projectile) {
         first = projectile;

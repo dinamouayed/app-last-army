@@ -4,7 +4,6 @@ import { refreshFormation } from '../army/armyState';
 import { getContactEnemyOffsetXs } from '../army/contactFiring';
 import { firingCorridorContains, getArmyFiringOrigins } from '../army/firing';
 import { ARMY_CONFIG } from '../config/army';
-import { WEAPONS } from '../config/weapons';
 import { createGameState } from '../engine/GameState';
 import { playerWorldZ } from '../math/camera';
 import { laneIndexToX } from '../math/lanes';
@@ -16,7 +15,7 @@ import { updateEnemies } from '../systems/EnemySystem';
 import { GAME_CONFIG } from '../config/game';
 
 describe('contact firing', () => {
-  it('adds firing origins toward brawling enemies on other lanes', () => {
+  it('keeps contact firing origins inside the selected lane', () => {
     const state = createGameState();
     state.armySize = 20;
     state.armyX = laneIndexToX(1, GAME_CONFIG.laneSpacing);
@@ -38,12 +37,15 @@ describe('contact firing', () => {
     const origins = getArmyFiringOrigins(state.formationSlots, state.armySize, {
       contactOffsetX: offsets,
     });
-    expect(
-      origins.some((origin) => Math.abs(origin.offsetX) > ARMY_CONFIG.fireCorridorHalfWidth),
-    ).toBe(true);
+    for (const origin of origins) {
+      expect(Math.abs(origin.offsetX)).toBeLessThanOrEqual(
+        ARMY_CONFIG.fireCorridorHalfWidth + 0.001,
+      );
+    }
+    expect(origins.some((origin) => origin.offsetX > 0)).toBe(true);
   });
 
-  it('damages a brawling enemy without moving onto their lane', () => {
+  it('keeps shots on the selected lane while brawling on another lane', () => {
     const state = createGameState();
     state.armySize = 20;
     state.armyX = laneIndexToX(1, GAME_CONFIG.laneSpacing);
@@ -63,15 +65,53 @@ describe('contact firing', () => {
     }
     expect(enemy!.behavior === 'engaging' || enemy!.behavior === 'attacking').toBe(true);
 
-    const startHp = enemy!.hp;
     for (let i = 0; i < 8; i += 1) {
       updateShooting(state, 1 / 3);
       updateProjectiles(state, 1 / 3);
       resolveProjectileCollisions(state);
     }
 
-    expect(enemy!.hp).toBeLessThan(startHp);
+    for (const projectile of state.projectiles) {
+      if (!projectile.active) {
+        continue;
+      }
+      expect(firingCorridorContains(projectile.x, state.armyX)).toBe(true);
+    }
     expect(state.armyX).toBeCloseTo(laneIndexToX(1, GAME_CONFIG.laneSpacing), 2);
+  });
+
+  it('does not send the volley down a brawler\'s distant lane', () => {
+    const state = createGameState();
+    state.armySize = 20;
+    state.armyX = laneIndexToX(1, GAME_CONFIG.laneSpacing);
+    state.targetLane = 1;
+    refreshFormation(state);
+
+    const playerZ = playerWorldZ(state.distance, GAME_CONFIG.camera);
+    const brawler = spawnBasicEnemyAt(
+      state,
+      laneIndexToX(2, GAME_CONFIG.laneSpacing),
+      playerZ + 0.35,
+    );
+    const distant = spawnBasicEnemyAt(state, laneIndexToX(2, GAME_CONFIG.laneSpacing), 24);
+    expect(brawler).not.toBeNull();
+    expect(distant).not.toBeNull();
+    brawler!.behavior = 'attacking';
+
+    const projectile = fireCurrentWeapon(state);
+    expect(projectile).not.toBeNull();
+    for (const shot of state.projectiles) {
+      if (!shot.active) {
+        continue;
+      }
+      shot.prevX = shot.x;
+      shot.prevZ = 20;
+      shot.z = 28;
+    }
+
+    resolveProjectileCollisions(state);
+
+    expect(distant!.hp).toBe(distant!.maxHp);
   });
 
   it('still requires lane alignment for distant enemies', () => {

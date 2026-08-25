@@ -20,8 +20,6 @@ export const ARMY_CONFIG = {
   maxFiringFormationDepth: 2,
   /** Half-width of offensive corridor around armyX (selected lane). */
   fireCorridorHalfWidth: 0.38,
-  /** Wider corridor while brawling with contact enemies on other lanes. */
-  contactFireCorridorHalfWidth: 1.15,
   /** Small cluster spread among firing origins inside the corridor. */
   fireOriginClusterSpread: 0.11,
   /** Cap on aggregate damage multiplier from army size. */

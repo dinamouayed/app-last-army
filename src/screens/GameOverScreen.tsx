@@ -9,6 +9,7 @@ interface GameOverScreenProps {
   bestDistance: number;
   isNewBest: boolean;
   onPlayAgain: () => void;
+  onMenu: () => void;
 }
 
 export function GameOverScreen({
@@ -16,6 +17,7 @@ export function GameOverScreen({
   bestDistance,
   isNewBest,
   onPlayAgain,
+  onMenu,
 }: GameOverScreenProps) {
   return (
     <View style={styles.root}>
@@ -26,13 +28,24 @@ export function GameOverScreen({
         {isNewBest ? <Text style={styles.newBest}>NEW BEST!</Text> : null}
         <ScoreDisplay label="DISTANCE" meters={distance} emphasize={isNewBest} />
         <ScoreDisplay label="BEST" meters={bestDistance} />
-        <Pressable
-          accessibilityRole="button"
-          onPress={onPlayAgain}
-          style={({ pressed }) => [styles.play, pressed && styles.playPressed]}
-        >
-          <Text style={styles.playLabel}>PLAY AGAIN</Text>
-        </Pressable>
+        <View style={styles.actions}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Play again"
+            onPress={onPlayAgain}
+            style={({ pressed }) => [styles.play, pressed && styles.pressed]}
+          >
+            <Text style={styles.playLabel}>PLAY AGAIN</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back to menu"
+            onPress={onMenu}
+            style={({ pressed }) => [styles.menu, pressed && styles.pressed]}
+          >
+            <Text style={styles.menuLabel}>MENU</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -69,8 +82,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 2,
   },
-  play: {
+  actions: {
     marginTop: 18,
+    alignItems: 'center',
+    gap: 12,
+  },
+  play: {
     backgroundColor: PALETTE.play,
     minWidth: 248,
     paddingVertical: 18,
@@ -80,7 +97,17 @@ const styles = StyleSheet.create({
     borderColor: PALETTE.playBorder,
     alignItems: 'center',
   },
-  playPressed: {
+  menu: {
+    backgroundColor: 'rgba(12, 18, 28, 0.42)',
+    minWidth: 248,
+    paddingVertical: 16,
+    paddingHorizontal: 42,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: 'rgba(244, 247, 251, 0.55)',
+    alignItems: 'center',
+  },
+  pressed: {
     opacity: 0.9,
     transform: [{ scale: 0.98 }],
   },
@@ -89,5 +116,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '900',
     letterSpacing: 1.5,
+  },
+  menuLabel: {
+    color: PALETTE.hudText,
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: 2,
   },
 });

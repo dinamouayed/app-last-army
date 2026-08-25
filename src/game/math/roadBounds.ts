@@ -48,6 +48,19 @@ export function asphaltLaneCenterX(lane: LaneIndex, camera: CameraConfig): numbe
   return (lane - 1) * asphaltLaneWidth(camera);
 }
 
+/** Playable lane whose asphalt center is closest to world X. */
+export function nearestAsphaltLane(worldX: number, camera: CameraConfig): LaneIndex {
+  const width = asphaltLaneWidth(camera);
+  const raw = width > 0 ? Math.round(worldX / width + 1) : 1;
+  if (raw <= 0) {
+    return 0;
+  }
+  if (raw >= 2) {
+    return 2;
+  }
+  return 1;
+}
+
 export function asphaltLaneBounds(
   lane: LaneIndex,
   camera: CameraConfig,
