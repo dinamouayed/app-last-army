@@ -149,9 +149,45 @@ describe('gate activation', () => {
     expect(activated[0]?.lane).toBe(0);
   });
 
-  it('kills the army when crossing a weapon barrel before it reaches zero', () => {
+  it('loses about one third of a large army on an untouched weapon barrel', () => {
     const state = createGameState();
-    state.armySize = 12;
+    state.armySize = 80;
+    refreshFormation(state);
+    const gate = makeWeaponGate(
+      1,
+      'shotgun',
+      50,
+      playerWorldZ(state.distance, GAME_CONFIG.camera) + 2,
+    );
+
+    applyGateToArmy(state, gate);
+
+    expect(state.armySize).toBe(53);
+    expect(state.status).toBe('running');
+    expect(gate.activated).toBe(true);
+  });
+
+  it('loses fewer soldiers when the barrel was mostly shot', () => {
+    const state = createGameState();
+    state.armySize = 80;
+    refreshFormation(state);
+    const gate = makeWeaponGate(
+      1,
+      'smg',
+      40,
+      playerWorldZ(state.distance, GAME_CONFIG.camera) + 2,
+    );
+    gate.weaponHp = 12;
+
+    applyGateToArmy(state, gate);
+
+    expect(state.armySize).toBe(72);
+    expect(state.status).toBe('running');
+  });
+
+  it('wipes the army when crossing an unfinished barrel with fewer than 10 soldiers', () => {
+    const state = createGameState();
+    state.armySize = 8;
     refreshFormation(state);
     const gate = makeWeaponGate(
       1,

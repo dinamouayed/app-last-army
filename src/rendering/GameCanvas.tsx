@@ -63,8 +63,12 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
       }
 
       updateFrameStats(stats, dt);
-      const picture = recordFrame(resources, session.state, width, height);
-      publishSkiaPicture(viewRef.current, picture, pictureHolder);
+      try {
+        const picture = recordFrame(resources, session.state, width, height);
+        publishSkiaPicture(viewRef.current, picture, pictureHolder);
+      } catch (error) {
+        console.error('[GameCanvas] recordFrame failed', error);
+      }
 
       hudAcc += dt;
       if (hudAcc >= GAME_CONFIG.hudUpdateInterval) {

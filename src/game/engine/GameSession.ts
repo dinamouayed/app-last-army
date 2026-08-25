@@ -7,7 +7,7 @@ import {
   updateLaneGesture,
 } from '../math/lanes';
 import { updateCombat } from '../systems/CombatSystem';
-import { spawnBoss } from '../systems/BossSystem';
+import { spawnBossForDev } from '../systems/BossSystem';
 import { updateRunner } from '../systems/RunnerSystem';
 import type { GameState, InputState } from '../types';
 
@@ -59,6 +59,6 @@ export class GameSession {
   }
 
   devSpawnBoss(): void {
-    spawnBoss(this.state);
+    spawnBossForDev(this.state);
   }
 }

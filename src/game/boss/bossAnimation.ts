@@ -36,11 +36,7 @@ export function pickBossSprite(boss: Boss): BossSpriteLayer {
     return staticIdle();
   }
 
-  if (boss.hitFlash > 0.04) {
-    return staticIdle();
-  }
-
-  if (boss.attackPhase === 'idle' || boss.attackPhase === 'hold') {
+  if (boss.attackPhase === 'idle' || boss.attackPhase === 'hold' || boss.attackPhase === 'recoverHold') {
     return staticIdle();
   }
 
@@ -61,7 +57,7 @@ export function pickBossSprite(boss: Boss): BossSpriteLayer {
   }
 
   if (boss.attackPhase === 'slamHold') {
-    return { body: BOSS_FRAMES.slam[0]! };
+    return { body: BOSS_FRAMES.slam[BOSS_FRAMES.slam.length - 1]! };
   }
 
   if (boss.attackPhase === 'recover') {

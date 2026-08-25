@@ -1,4 +1,4 @@
-import { removeSoldiersAtContact } from '../army/armyState';
+import { addSoldiers, removeSoldiersAtContact } from '../army/armyState';
 import { armyFrontWorldZ } from '../army/footprint';
 import {
   BOSS_CONFIG,
@@ -120,19 +120,32 @@ function spawnSlamImpactParticles(state: GameState, x: number, z: number): void 
   }
 }
 
-export function spawnBoss(state: GameState): Boss | null {
-  if (state.boss.active) {
+export function spawnBoss(
+  state: GameState,
+  options?: { dev?: boolean },
+): Boss | null {
+  if (state.boss.active && !options?.dev) {
     return null;
   }
 
   const boss = state.boss;
+  if (options?.dev) {
+    boss.active = false;
+    boss.dying = false;
+    boss.deathT = 0;
+  } else if (boss.active) {
+    return null;
+  }
+
   const maxHp = bossMaxHpForDistance(state.distance);
   const encounterIndex = state.bossEncounterCount;
 
   boss.id = nextId(state);
   boss.active = true;
   boss.x = asphaltLaneCenterX(1, GAME_CONFIG.camera);
-  boss.depthOffset = BOSS_CONFIG.spawnDepthOffset;
+  boss.depthOffset = options?.dev
+    ? BOSS_CONFIG.devSpawnDepthOffset
+    : BOSS_CONFIG.spawnDepthOffset;
   syncBossWorldZ(state, boss);
   boss.hp = maxHp;
   boss.maxHp = maxHp;
@@ -143,13 +156,25 @@ export function spawnBoss(state: GameState): Boss | null {
   boss.behavior = 'approaching';
   boss.attackPhase = 'idle';
   boss.attackPhaseT = 0;
-  boss.attackCooldown = bossAttackInterval(encounterIndex) * 0.35;
+  boss.attackCooldown = bossAttackInterval(encounterIndex) * (options?.dev ? 0.85 : 0.35);
   boss.slamDamage = bossSlamDamageForEncounter(state.distance, encounterIndex, state.armySize);
+  boss.slamDamageApplied = false;
   boss.animTime = 0;
   clearGatesNearWorldZ(state, boss.z, BOSS_CONFIG.gateClearanceZ);
   reserveGateSpawnAfterBoss(state);
   state.bossEncounterCount += 1;
   return boss;
+}
+
+/** Dev-only — respawns the boss close to the army with a safe test army size. */
+export function spawnBossForDev(state: GameState): Boss | null {
+  if (state.status !== 'running') {
+    return null;
+  }
+  if (state.armySize < BOSS_CONFIG.devSpawnMinArmy) {
+    addSoldiers(state, BOSS_CONFIG.devSpawnMinArmy - state.armySize);
+  }
+  return spawnBoss(state, { dev: true });
 }
 
 export function killBoss(state: GameState, boss: Boss): void {
@@ -192,13 +217,16 @@ function executeSlam(state: GameState, boss: Boss): void {
     bossEncounterIndex(state),
     state.armySize,
   );
+  const playerZ = playerWorldZ(state.distance, GAME_CONFIG.camera);
+  const frontZ = armyFrontWorldZ(playerZ, state.formationSlots);
+  const impactZ = (frontZ + playerZ) * 0.5;
   boss.slamDamage = damage;
-  removeSoldiersAtContact(state, damage, boss.x, boss.z);
-  spawnSlamImpactParticles(state, boss.x, boss.z);
+  removeSoldiersAtContact(state, damage, boss.x, impactZ);
+  spawnSlamImpactParticles(state, boss.x, impactZ);
   state.armyShake = BOSS_CONFIG.slamShakeDuration;
   state.contactPulse = COMBAT_CONFIG.contactPulseDuration * 1.35;
   state.contactX = boss.x;
-  state.contactZ = boss.z;
+  state.contactZ = impactZ;
 }
 
 function updateApproachingBoss(state: GameState, boss: Boss, dt: number): void {
@@ -224,6 +252,21 @@ function updateApproachingBoss(state: GameState, boss: Boss, dt: number): void {
   void playerZ;
 }
 
+function slamHoldElapsed(boss: Boss): number {
+  return BOSS_CONFIG.slamHoldDuration - boss.attackPhaseT;
+}
+
+function updateSlamHoldDamage(state: GameState, boss: Boss): void {
+  if (boss.attackPhase !== 'slamHold' || boss.slamDamageApplied) {
+    return;
+  }
+  if (slamHoldElapsed(boss) + 1e-4 < BOSS_CONFIG.slamImpactPause) {
+    return;
+  }
+  executeSlam(state, boss);
+  boss.slamDamageApplied = true;
+}
+
 function advanceAttackPhase(state: GameState, boss: Boss): void {
   if (boss.attackPhaseT > 0) {
     return;
@@ -245,13 +288,17 @@ function advanceAttackPhase(state: GameState, boss: Boss): void {
     case 'slam':
       boss.attackPhase = 'slamHold';
       boss.attackPhaseT = BOSS_CONFIG.slamHoldDuration;
-      executeSlam(state, boss);
+      boss.slamDamageApplied = false;
       break;
     case 'slamHold':
       boss.attackPhase = 'recover';
       boss.attackPhaseT = BOSS_CONFIG.recoverDuration;
       break;
     case 'recover':
+      boss.attackPhase = 'recoverHold';
+      boss.attackPhaseT = BOSS_CONFIG.recoverHoldDuration;
+      break;
+    case 'recoverHold':
       boss.attackPhase = 'idle';
       boss.attackCooldown = bossAttackInterval(bossEncounterIndex(state));
       break;
@@ -276,6 +323,7 @@ function updateFightingBoss(state: GameState, boss: Boss, dt: number): void {
     return;
   }
 
+  updateSlamHoldDamage(state, boss);
   boss.attackPhaseT -= dt;
   advanceAttackPhase(state, boss);
 }

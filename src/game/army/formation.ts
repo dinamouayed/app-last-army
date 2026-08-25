@@ -20,7 +20,7 @@ export interface DyingSoldierVisual {
   t: number;
 }
 
-export function createDyingVisualPool(size = 16): DyingSoldierVisual[] {
+export function createDyingVisualPool(size = 40): DyingSoldierVisual[] {
   return Array.from({ length: size }, () => ({
     active: false,
     offsetX: 0,

@@ -116,6 +116,40 @@ function drawBossHealthBar(
   }
 }
 
+function drawFallbackBossBody(
+  canvas: SkCanvas,
+  resources: RenderResources,
+  feetX: number,
+  feetY: number,
+  screenScale: number,
+  alpha: number,
+): { headX: number; headY: number; width: number; height: number } {
+  const width = 72 * screenScale;
+  const height = 96 * screenScale;
+  const x = feetX - width * 0.5;
+  const y = feetY - height;
+
+  resources.paints.bossPants.setAlphaf(alpha);
+  canvas.drawRRect(
+    Skia.RRectXY(Skia.XYWHRect(x + width * 0.12, y + height * 0.18, width * 0.76, height * 0.72), 6, 6),
+    resources.paints.bossPants,
+  );
+  resources.paints.bossMuscle.setAlphaf(alpha);
+  canvas.drawRRect(
+    Skia.RRectXY(Skia.XYWHRect(x + width * 0.22, y + height * 0.04, width * 0.56, height * 0.22), 4, 4),
+    resources.paints.bossMuscle,
+  );
+  resources.paints.bossPants.setAlphaf(1);
+  resources.paints.bossMuscle.setAlphaf(1);
+
+  return {
+    headX: feetX,
+    headY: y + 10 * screenScale,
+    width,
+    height,
+  };
+}
+
 function drawOneBoss(
   canvas: SkCanvas,
   resources: RenderResources,
@@ -125,9 +159,6 @@ function drawOneBoss(
   height: number,
 ): void {
   const atlas = resources.bossAtlas;
-  if (!atlas) {
-    return;
-  }
 
   const death = boss.dying ? Math.min(1, boss.deathT / BOSS_CONFIG.deathDuration) : 0;
   const point = worldToScreen(
@@ -162,15 +193,39 @@ function drawOneBoss(
   );
   resources.paints.bossShadow.setAlphaf(1);
 
-  const layout = drawAtlasFrame(
-    canvas,
-    atlas,
-    sprite.body,
-    point.screenX,
-    point.screenY,
-    screenScale,
-    alpha,
-  );
+  const layout = atlas
+    ? drawAtlasFrame(
+        canvas,
+        atlas,
+        sprite.body,
+        point.screenX,
+        point.screenY,
+        screenScale,
+        alpha,
+      )
+    : drawFallbackBossBody(
+        canvas,
+        resources,
+        point.screenX,
+        point.screenY,
+        screenScale,
+        alpha,
+      );
+
+  if (boss.hitFlash > 0 && !boss.dying) {
+    const flash = Math.min(1, boss.hitFlash / BOSS_CONFIG.hitFlashDuration);
+    resources.paints.hitFlash.setAlphaf(alpha * 0.28 * flash);
+    canvas.drawOval(
+      {
+        x: point.screenX - layout.width * 0.28,
+        y: layout.headY,
+        width: layout.width * 0.56,
+        height: layout.height * 0.72,
+      },
+      resources.paints.hitFlash,
+    );
+    resources.paints.hitFlash.setAlphaf(1);
+  }
 
   if (!boss.dying) {
     drawBossHealthBar(

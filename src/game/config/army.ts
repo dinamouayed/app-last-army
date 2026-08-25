@@ -13,7 +13,7 @@ export const ARMY_CONFIG = {
   hitFlashDuration: 0.12,
   deathPulseDuration: 0.2,
   shakeDuration: 0.14,
-  soldierDeathDuration: 0.22,
+  soldierDeathDuration: 0.42,
   /** Max simultaneous firing origins per volley. */
   maxFiringOrigins: 6,
   /** Only front wedge rows up to this depth may fire. */
@@ -26,7 +26,7 @@ export const ARMY_CONFIG = {
   fireOriginClusterSpread: 0.11,
   /** Cap on aggregate damage multiplier from army size. */
   armyDamageScaleMax: 2.4,
-  deathParticleCount: 4,
+  deathParticleCount: 14,
   leaderScaleBoost: 1.08,
   crowdScaleMin: 0.78,
   rearScaleBoost: 1.12,

@@ -6,35 +6,48 @@ export const BOSS_CONFIG = {
   baseMaxHp: 850,
   hpPerDistance: 2.8,
   spawnDepthOffset: 48,
-  fightDepthOffset: 5.5,
-  closureSpeed: 18,
+  /** Dev spawn — close enough to see the Brute immediately on screen. */
+  devSpawnDepthOffset: 16,
+  /** Minimum army size when using the dev spawn button. */
+  devSpawnMinArmy: 30,
+  /** World meters ahead of the army tip — keep the slam on the front ranks. */
+  fightDepthOffset: 1.05,
+  closureSpeed: 10,
   collisionRadius: 0.85,
-  attackInterval: 2.4,
-  firstBossAttackInterval: 2.8,
+  attackInterval: 3.2,
+  firstBossAttackInterval: 5.0,
   /** Static pose before raising arms (contact only). */
-  holdBeforeAttack: 0.75,
-  windupRaiseDuration: 0.65,
-  /** Arms held above head before the slam. */
-  windupHoldDuration: 0.8,
-  slamDuration: 0.45,
-  /** Hands on the ground after impact. */
-  slamHoldDuration: 0.85,
-  recoverDuration: 0.9,
+  holdBeforeAttack: 2.6,
+  windupRaiseDuration: 2.2,
+  /** Arms held above head before the slam — visual only, no damage. */
+  windupHoldDuration: 1.6,
+  /** Descent animation — visual only, no damage. */
+  slamDuration: 1.2,
+  /** Beat after hands hit the ground before soldiers are removed. */
+  slamImpactPause: 0.18,
+  /** Keep the slam pose (arms down) before standing back up. */
+  slamHoldDuration: 5.8,
+  /** Rise back to standing. */
+  recoverDuration: 2.8,
+  /** Standing pause after recovering, before the next idle wait. */
+  recoverHoldDuration: 1.9,
   hitFlashDuration: 0.1,
   hitKnockback: 0.12,
   deathDuration: 0.55,
   deathParticleCount: 18,
   unlockPulseDuration: 0.55,
   slamShakeDuration: 0.22,
-  /** Screen scale for 205×211 atlas cells. */
-  visualScale: 1.05,
+  /** Screen scale for 256×256 atlas cells. */
+  visualScale: 1.12,
   idleAnimFps: 6,
-  slamBaseDamage: 8,
-  slamDamagePerEncounter: 18,
+  slamBaseDamage: 12,
+  slamDamagePerEncounter: 10,
   slamDamagePer100m: 2,
-  /** First boss never removes more than this fraction of the army per slam. */
-  firstBossMaxArmyFraction: 0.28,
-  firstBossMaxSlamDamage: 12,
+  /** Share of the current army removed by a first-boss slam. */
+  firstBossArmyFraction: 0.24,
+  /** Share of the current army removed by later slams. */
+  slamArmyFraction: 0.28,
+  slamFractionPerEncounter: 0.06,
   /** Minimum run distance between a boss spawn and the next gate spawn. */
   minGateDistanceSeparation: 90,
   /** World-depth clearance — gates/barrels within this range of the boss are removed. */
@@ -67,21 +80,22 @@ export function bossSlamDamage(distance: number, encounterIndex: number): number
   );
 }
 
+function slamArmyFraction(encounterIndex: number): number {
+  if (encounterIndex <= 0) {
+    return BOSS_CONFIG.firstBossArmyFraction;
+  }
+  return Math.min(
+    0.55,
+    BOSS_CONFIG.slamArmyFraction
+      + (encounterIndex - 1) * BOSS_CONFIG.slamFractionPerEncounter,
+  );
+}
+
 export function bossSlamDamageForEncounter(
-  distance: number,
+  _distance: number,
   encounterIndex: number,
   armySize: number,
 ): number {
-  let damage = bossSlamDamage(distance, encounterIndex);
-  if (encounterIndex === 0) {
-    const cap = Math.max(
-      1,
-      Math.min(
-        BOSS_CONFIG.firstBossMaxSlamDamage,
-        Math.ceil(armySize * BOSS_CONFIG.firstBossMaxArmyFraction),
-      ),
-    );
-    damage = Math.min(damage, cap);
-  }
-  return Math.max(1, Math.min(damage, armySize));
+  const scaled = Math.ceil(armySize * slamArmyFraction(encounterIndex) - 1e-9);
+  return Math.max(1, Math.min(armySize, scaled));
 }

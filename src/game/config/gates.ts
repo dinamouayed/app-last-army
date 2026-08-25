@@ -51,6 +51,10 @@ export const GATE_CONFIG = {
     explodeDuration: 0.62,
     absorbDuration: 0.58,
     unlockPulseDuration: 0.55,
+    /** Crossing an unfinished barrel wipes the army below this size. */
+    failLethalBelow: 10,
+    /** Max army fraction lost at 10+ soldiers (when the barrel was not damaged). */
+    failArmyFraction: 1 / 3,
   },
 } as const;
 

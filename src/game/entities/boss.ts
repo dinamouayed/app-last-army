@@ -6,7 +6,8 @@ export type BossAttackPhase =
   | 'windupHold'
   | 'slam'
   | 'slamHold'
-  | 'recover';
+  | 'recover'
+  | 'recoverHold';
 
 export interface Boss {
   active: boolean;
@@ -26,6 +27,8 @@ export interface Boss {
   attackPhaseT: number;
   attackCooldown: number;
   slamDamage: number;
+  /** True once the current slamHold has already dealt damage. */
+  slamDamageApplied: boolean;
   animTime: number;
 }
 
@@ -53,6 +56,7 @@ export function createEmptyBoss(): Boss {
     attackPhaseT: 0,
     attackCooldown: 0,
     slamDamage: 0,
+    slamDamageApplied: false,
     animTime: 0,
   };
 }

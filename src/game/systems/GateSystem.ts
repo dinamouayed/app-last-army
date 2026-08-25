@@ -17,7 +17,11 @@ import { asphaltLaneBounds, asphaltLaneCenterX } from '../math/roadBounds';
 import type { GameState, LaneIndex } from '../types';
 import { generateGateChoices } from './GateGenerator';
 import { applyHitToShootableGate, syncShootableGateDerived } from './gateEvolution';
-import { equipWeapon, registerWeaponUnlock } from './weaponGate';
+import {
+  equipWeapon,
+  failedWeaponUnlockSoldierLoss,
+  registerWeaponUnlock,
+} from './weaponGate';
 import { BOSS_CONFIG } from '../config/bosses';
 import { isBossPresent } from '../entities/boss';
 
@@ -329,8 +333,12 @@ function activateWeaponGate(state: GameState, gate: Gate): void {
     state.gatePulseZ = gate.z;
     state.gatePulsePositive = false;
     spawnGateActivationParticles(state, gate.x, gate.z, false);
-    removeSoldiers(state, state.armySize, gate.x, gate.z);
-    checkArmyGameOver(state);
+    removeSoldiers(
+      state,
+      failedWeaponUnlockSoldierLoss(state.armySize, gate.weaponHp, gate.weaponMaxHp),
+      gate.x,
+      gate.z,
+    );
     deactivateGateGroup(state, gate.groupId, gate.id);
     return;
   }

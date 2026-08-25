@@ -18,7 +18,7 @@ export interface Gate {
   shootable: boolean;
   signedValue: number;
   damageBuffer: number;
-  /** Weapon barrel HP — decreases when shot; crossing while HP > 0 is lethal. */
+  /** Weapon barrel HP — decreases when shot; crossing while HP > 0 costs a fraction of the army. */
   weaponId: WeaponId | null;
   weaponHp: number;
   weaponMaxHp: number;

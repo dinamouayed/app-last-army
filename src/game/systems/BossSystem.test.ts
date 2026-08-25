@@ -6,7 +6,7 @@ import { WEAPONS } from '../config/weapons';
 import { createGameState } from '../engine/GameState';
 import { createEmptyGate } from '../entities/gates';
 import { playerWorldZ } from '../math/camera';
-import { applyProjectileBossHit, killBoss, scheduleFirstBoss, spawnBoss, updateBoss } from './BossSystem';
+import { applyProjectileBossHit, killBoss, scheduleFirstBoss, spawnBoss, spawnBossForDev, updateBoss } from './BossSystem';
 import { resolveProjectileCollisions } from './CollisionSystem';
 import { clearGatesNearWorldZ, updateGates } from './GateSystem';
 import { updateSpawn } from './SpawnSystem';
@@ -115,13 +115,40 @@ describe('boss and gate separation', () => {
     expect(clearGatesNearWorldZ(state, 100, 10)).toBe(1);
     expect(gate.active).toBe(false);
   });
+
+  it('dev spawn places the boss closer and keeps the army alive', () => {
+    const state = createGameState();
+    state.armySize = 1;
+    spawnBossForDev(state);
+    expect(state.boss.active).toBe(true);
+    expect(state.armySize).toBeGreaterThanOrEqual(BOSS_CONFIG.devSpawnMinArmy);
+    expect(state.boss.depthOffset).toBe(BOSS_CONFIG.devSpawnDepthOffset);
+    for (let i = 0; i < 180; i += 1) {
+      updateBoss(state, 1 / 60);
+      if (state.status === 'gameover') {
+        break;
+      }
+    }
+    expect(state.status).toBe('running');
+    expect(state.armySize).toBeGreaterThan(0);
+  });
+
+  it('dev spawn can replace an active boss', () => {
+    const state = createGameState();
+    spawnBoss(state);
+    const firstId = state.boss.id;
+    spawnBossForDev(state);
+    expect(state.boss.active).toBe(true);
+    expect(state.boss.id).not.toBe(firstId);
+  });
 });
 
 describe('boss combat', () => {
-  it('scales slam damage by encounter index and caps the first boss', () => {
-    expect(bossSlamDamageForEncounter(320, 0, 50)).toBe(8);
+  it('scales slam damage with army size so large crowds visibly thin', () => {
+    expect(bossSlamDamageForEncounter(320, 0, 50)).toBe(12);
     expect(bossSlamDamageForEncounter(320, 0, 5)).toBe(2);
-    expect(bossSlamDamageForEncounter(320, 1, 50)).toBe(26);
+    expect(bossSlamDamageForEncounter(320, 0, 472)).toBe(114);
+    expect(bossSlamDamageForEncounter(320, 1, 50)).toBe(14);
   });
 
   it('reduces boss HP from projectile hits', () => {
@@ -157,7 +184,7 @@ describe('boss combat', () => {
     expect(state.boss.hp).toBeLessThan(state.boss.maxHp);
   });
 
-  it('slam attack kills soldiers in a burst without wiping a mid-size army instantly', () => {
+  it('slam descent does not damage soldiers before the ground pause', () => {
     const state = createGameState();
     state.armySize = 50;
     spawnBoss(state);
@@ -165,7 +192,22 @@ describe('boss combat', () => {
     state.boss.attackPhase = 'slam';
     state.boss.attackPhaseT = 0.001;
     updateBoss(state, 0.01);
-    expect(state.armySize).toBe(42);
-    expect(state.status).toBe('running');
+    expect(state.armySize).toBe(50);
+    expect(state.boss.attackPhase).toBe('slamHold');
+  });
+
+  it('slam damage hits only after a pause on the ground', () => {
+    const state = createGameState();
+    state.armySize = 50;
+    spawnBoss(state);
+    state.boss.behavior = 'fighting';
+    state.boss.attackPhase = 'slamHold';
+    state.boss.slamDamageApplied = false;
+    state.boss.attackPhaseT = BOSS_CONFIG.slamHoldDuration;
+    updateBoss(state, BOSS_CONFIG.slamImpactPause);
+    expect(state.armySize).toBe(50);
+    updateBoss(state, 0.02);
+    expect(state.armySize).toBe(38);
+    expect(state.boss.slamDamageApplied).toBe(true);
   });
 });
