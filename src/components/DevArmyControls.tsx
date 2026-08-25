@@ -44,6 +44,10 @@ export function DevArmyControls({ session }: DevArmyControlsProps) {
           />
         ))}
       </View>
+      <Text style={styles.label}>DEV BOSS</Text>
+      <View style={styles.row}>
+        <DevButton label="SPAWN" onPress={() => session.devSpawnBoss()} />
+      </View>
     </View>
   );
 }

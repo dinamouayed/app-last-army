@@ -4,6 +4,7 @@ import {
   StrokeCap,
   StrokeJoin,
   TileMode,
+  type SkImage,
   type SkPaint,
   type SkPath,
   type SkPictureRecorder,
@@ -66,6 +67,22 @@ export interface Paints {
   tracerCore: SkPaint;
   hpBack: SkPaint;
   hpFill: SkPaint;
+  bossHpFill: SkPaint;
+  bossHpText: SkPaint;
+  bossHpShadow: SkPaint;
+  bossSkin: SkPaint;
+  bossSkinDark: SkPaint;
+  bossSkinShadow: SkPaint;
+  bossMuscle: SkPaint;
+  bossWound: SkPaint;
+  bossWoundDark: SkPaint;
+  bossPants: SkPaint;
+  bossPantsDark: SkPaint;
+  bossMustache: SkPaint;
+  bossBrow: SkPaint;
+  bossEye: SkPaint;
+  bossWristband: SkPaint;
+  bossShadow: SkPaint;
   hitFlash: SkPaint;
   particle: SkPaint;
   contact: SkPaint;
@@ -100,6 +117,7 @@ export interface RenderResources {
   paints: Paints;
   path: SkPath;
   layout: { width: number; height: number };
+  bossAtlas: SkImage | null;
 }
 
 function fillPaint(color: string): SkPaint {
@@ -180,6 +198,22 @@ export function createRenderResources(): RenderResources {
       tracerCore: strokePaint(PALETTE.tracerCore, 2.1),
       hpBack: fillPaint(PALETTE.hpBack),
       hpFill: fillPaint(PALETTE.hpFill),
+      bossHpFill: fillPaint(PALETTE.bossHpFill),
+      bossHpText: fillPaint(PALETTE.bossHpText),
+      bossHpShadow: fillPaint(PALETTE.bossHpShadow),
+      bossSkin: fillPaint(PALETTE.bossSkin),
+      bossSkinDark: fillPaint(PALETTE.bossSkinDark),
+      bossSkinShadow: fillPaint(PALETTE.bossSkinShadow),
+      bossMuscle: fillPaint(PALETTE.bossMuscle),
+      bossWound: fillPaint(PALETTE.bossWound),
+      bossWoundDark: fillPaint(PALETTE.bossWoundDark),
+      bossPants: fillPaint(PALETTE.bossPants),
+      bossPantsDark: fillPaint(PALETTE.bossPantsDark),
+      bossMustache: fillPaint(PALETTE.bossMustache),
+      bossBrow: fillPaint(PALETTE.bossBrow),
+      bossEye: fillPaint(PALETTE.bossEye),
+      bossWristband: fillPaint(PALETTE.bossWristband),
+      bossShadow: fillPaint(PALETTE.bossShadow),
       hitFlash: fillPaint(PALETTE.hitFlash),
       particle: fillPaint(PALETTE.particle),
       contact: fillPaint(PALETTE.contact),
@@ -208,6 +242,7 @@ export function createRenderResources(): RenderResources {
       accent: fillPaint(PALETTE.accent),
       hint: fillPaint(PALETTE.hint),
     },
+    bossAtlas: null,
   };
 }
 

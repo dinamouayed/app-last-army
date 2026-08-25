@@ -5,6 +5,7 @@ import { PALETTE } from '../game/config/palette';
 import { horizonY } from '../game/math/camera';
 import type { GameState } from '../game/types';
 import { drawArmy } from './ArmyRenderer';
+import { drawBoss } from './BossRenderer';
 import { drawCombatEffects } from './EffectsRenderer';
 import { drawEnemies } from './EnemyRenderer';
 import { drawGateActivationPulse, drawGates } from './GateRenderer';
@@ -55,6 +56,7 @@ export function recordFrame(
   drawWorld(canvas, resources, state, width, height);
   drawGates(canvas, resources, state, width, height);
   drawEnemies(canvas, resources, state, width, height);
+  drawBoss(canvas, resources, state, width, height);
   drawProjectiles(canvas, resources, state, width, height);
   drawArmy(canvas, resources, state, width, height);
   drawGateActivationPulse(canvas, resources, state, width, height);

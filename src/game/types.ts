@@ -1,4 +1,5 @@
 import type { CombatState } from './entities/combat';
+import type { BossRuntimeState } from './entities/boss';
 import type { GateRuntimeState } from './entities/gates';
 import type { FormationSlot, DyingSoldierVisual } from './army/formation';
 import type { WeaponId } from './config/weapons';
@@ -7,7 +8,7 @@ export type LaneIndex = 0 | 1 | 2;
 
 export type GameStatus = 'running' | 'paused' | 'gameover';
 
-export interface GameState extends CombatState, GateRuntimeState {
+export interface GameState extends CombatState, GateRuntimeState, BossRuntimeState {
   status: GameStatus;
   elapsed: number;
   distance: number;

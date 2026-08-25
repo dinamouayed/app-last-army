@@ -9,6 +9,7 @@ import {
   getRoadWorldBounds,
 } from '../math/roadBounds';
 import type { GameState, LaneIndex } from '../types';
+import { isBossPresent } from '../entities/boss';
 import { livingEnemyCount, spawnBasicEnemyAt } from './EnemySystem';
 
 function enemyRoadMargin(): number {
@@ -92,6 +93,11 @@ export function updateSpawn(
 ): void {
   state.spawnTimer -= dt;
   if (state.spawnTimer > 0) {
+    return;
+  }
+
+  if (isBossPresent(state.boss)) {
+    state.spawnTimer = COMBAT_CONFIG.spawnRetryDelay;
     return;
   }
 

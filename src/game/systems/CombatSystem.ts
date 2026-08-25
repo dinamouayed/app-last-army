@@ -1,5 +1,6 @@
 import type { GameState } from '../types';
 import { updateArmyVisuals } from './ArmySystem';
+import { updateBoss } from './BossSystem';
 import { resolveProjectileEnemyCollisions } from './CollisionSystem';
 import { updateEnemies, updateParticles } from './EnemySystem';
 import { updateGates } from './GateSystem';
@@ -15,6 +16,7 @@ export function updateCombat(
   if (state.status !== 'running') {
     return;
   }
+  updateBoss(state, dt);
   updateGates(state, dt, rng);
   updateSpawn(state, dt, rng);
   updateShooting(state, dt);

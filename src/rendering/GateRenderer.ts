@@ -2,7 +2,7 @@ import { Skia, matchFont, type SkCanvas, type SkPaint } from '@shopify/react-nat
 
 import { GATE_CONFIG } from '../game/config/gates';
 import { GAME_CONFIG } from '../game/config/game';
-import type { WeaponId } from '../config/weapons';
+import type { WeaponId } from '../game/config/weapons';
 import type { Gate } from '../game/entities/gates';
 import { formatGateLabel, isPositiveGate, isWeaponGate } from '../game/entities/gates';
 import { shootableGateProgress } from '../game/systems/gateEvolution';
@@ -443,10 +443,10 @@ function drawWoodenBarrel(
   height: number,
 ): void {
   const bodyW = panelW * 0.82;
-  const bodyH = panelH * 0.36;
+  const bodyH = panelH * 0.88;
   const x = centerX - bodyW * 0.5;
-  const y = baseY - bodyH + 2 * scale;
-  const iconAnchorY = baseY - panelH * 0.72;
+  const y = baseY - panelH + 4 * scale;
+  const iconAnchorY = baseY - panelH - panelH * 0.16;
   const absorbing = gate.weaponAbsorbT > 0;
   const exploding = gate.explodeT > 0;
   const explodeProgress = exploding

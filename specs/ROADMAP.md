@@ -42,13 +42,11 @@ Status values:
 
 # Current Status
 
-**Current phase:** Phase 6 — Weapons
+**Current phase:** Phase 7 — Boss System
 
 **Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
 
-Phases 1, 1.5, 2, 3, 4 and 5 are validated. Phase 6 weapon progression (configs, unlock objects, HUD) is implemented and waiting for manual validation.
-
-Do NOT start Phase 7 until Phase 6 has been manually validated.
+Phases 1, 1.5, 2, 3, 4, 5 and 6 are validated. Phase 7 boss encounters are implemented and waiting for manual validation.
 
 ---
 
@@ -310,7 +308,7 @@ Example:
 
 # Phase 6 — Weapons
 
-**Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
+**Status:** 🟢 VALIDATED
 
 ## Objective
 
@@ -345,32 +343,32 @@ Weapon unlocks appear as **wooden barrel gates** in lane choice sets (alongside 
 * [x] Increasing unlock costs (scale with distance)
 * [x] Equip unlocked weapon
 * [x] Barrel explosion animation
-* [x] Unlock feedback banner
+* [x] Weapon absorption animation (fly toward army)
 
 ---
 
 # Phase 7 — Boss System
 
-**Status:** ⬜ NOT STARTED
+**Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
 
 ## Objective
 
 Create periodic high-pressure survival encounters without ending the run after victory.
 
-* [ ] Boss spawning based on distance
-* [ ] Boss HP
-* [ ] Boss health bar
-* [ ] Boss movement toward army
-* [ ] Boss receives projectile damage
-* [ ] Boss reaches army
-* [ ] Repeated boss attacks
-* [ ] Configurable attack interval
-* [ ] Boss removes groups of soldiers
-* [ ] Army continues firing during boss attacks
-* [ ] Boss death
-* [ ] Boss death effects
-* [ ] Run continues after boss victory
-* [ ] Game over if boss destroys entire army
+* [x] Boss spawning based on distance
+* [x] Boss HP
+* [x] Boss health bar
+* [x] Boss movement toward army
+* [x] Boss receives projectile damage
+* [x] Boss reaches army
+* [x] Repeated boss attacks
+* [x] Configurable attack interval
+* [x] Boss removes groups of soldiers
+* [x] Army continues firing during boss attacks
+* [x] Boss death
+* [x] Boss death effects
+* [x] Run continues after boss victory
+* [x] Game over if boss destroys entire army
 
 ## Desired tension
 
@@ -566,7 +564,7 @@ The first complete MVP is reached when the player can:
 * [ ] Improve shootable gates
 * [x] Unlock stronger weapons
 * [ ] Encounter increasingly difficult enemies
-* [ ] Fight bosses
+* [x] Fight bosses
 * [ ] Survive bosses and continue the same run
 * [ ] Experience continuously increasing difficulty
 * [ ] Play without finite/manual levels
@@ -585,8 +583,8 @@ The intended core loop remains:
 
 Manually validate:
 
-**Phase 6 — Weapons**
+**Phase 7 — Boss System**
 
 Then, and only then:
 
-**Phase 7 — Boss System**
+**Phase 8 — Procedural World & Difficulty**

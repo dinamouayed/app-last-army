@@ -7,7 +7,9 @@ import {
   buildArmyFootprintForState,
   isEnemyInArmyContact,
 } from '../army/contactFiring';
+import { enemyOverlapsArmyFootprint } from '../army/footprint';
 import { applyProjectileGateHit } from './GateSystem';
+import { applyProjectileBossHit } from './BossSystem';
 import { killEnemy } from './EnemySystem';
 import type { FootprintSlice } from '../army/footprint';
 
@@ -29,6 +31,40 @@ function enemyHitRadius(enemy: { radius: number }, inContact: boolean): number {
     return enemy.radius + COMBAT_CONFIG.contactProjectileHitBonus;
   }
   return enemy.radius;
+}
+
+function findBestBossHit(
+  state: GameState,
+  prevX: number,
+  prevZ: number,
+  x: number,
+  z: number,
+  radiusPad: number,
+  footprint: FootprintSlice[],
+): { t: number } | null {
+  const boss = state.boss;
+  if (!boss.active || boss.dying) {
+    return null;
+  }
+  const inContact = boss.behavior === 'fighting'
+    ? enemyOverlapsArmyFootprint(boss.x, boss.z, boss.radius, footprint)
+    : false;
+  const hitRadius = inContact
+    ? boss.radius + COMBAT_CONFIG.contactProjectileHitBonus
+    : boss.radius;
+  const t = segmentCircleHitT(
+    prevX,
+    prevZ,
+    x,
+    z,
+    boss.x,
+    boss.z,
+    hitRadius + radiusPad,
+  );
+  if (t === null) {
+    return null;
+  }
+  return { t };
 }
 
 function findBestEnemyHit(
@@ -134,7 +170,7 @@ export function resolveProjectileEnemyCollisions(state: GameState): void {
   resolveProjectileCollisions(state);
 }
 
-/** Enemies take priority over shootable / weapon gates. */
+/** Bosses take priority over enemies; enemies over shootable / weapon gates. */
 export function resolveProjectileCollisions(state: GameState): void {
   const footprint = buildArmyFootprintForState(state);
 
@@ -145,6 +181,15 @@ export function resolveProjectileCollisions(state: GameState): void {
     }
 
     const radiusPad = projectile.radius;
+    const bossHit = findBestBossHit(
+      state,
+      projectile.prevX,
+      projectile.prevZ,
+      projectile.x,
+      projectile.z,
+      radiusPad,
+      footprint,
+    );
     const enemyHit = findBestEnemyHit(
       state,
       projectile.prevX,
@@ -162,6 +207,12 @@ export function resolveProjectileCollisions(state: GameState): void {
       projectile.z,
       radiusPad,
     );
+
+    if (bossHit && (!enemyHit || bossHit.t <= enemyHit.t) && (!gateHit || bossHit.t <= gateHit.t)) {
+      applyProjectileBossHit(state, projectile.damage);
+      projectile.active = false;
+      continue;
+    }
 
     if (enemyHit && (!gateHit || enemyHit.t <= gateHit.t)) {
       applyProjectileHit(state, enemyHit.index, projectile.damage);

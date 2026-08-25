@@ -6,6 +6,7 @@ import {
 } from '../army/armyState';
 import { armyFrontWorldZ } from '../army/footprint';
 import { GATE_CONFIG } from '../config/gates';
+import { COMBAT_CONFIG } from '../config/combat';
 import { GAME_CONFIG } from '../config/game';
 import { acquireEntity } from '../entities/combat';
 import type { Particle } from '../entities/combat';
@@ -17,7 +18,8 @@ import type { GameState, LaneIndex } from '../types';
 import { generateGateChoices } from './GateGenerator';
 import { applyHitToShootableGate, syncShootableGateDerived } from './gateEvolution';
 import { equipWeapon, registerWeaponUnlock } from './weaponGate';
-import { COMBAT_CONFIG } from '../config/combat';
+import { BOSS_CONFIG } from '../config/bosses';
+import { isBossPresent } from '../entities/boss';
 
 function nextGateId(state: GameState): number {
   const id = state.nextEntityId;
@@ -106,6 +108,31 @@ export function scheduleFirstGate(state: GameState): void {
   state.nextGateDistance = GATE_CONFIG.firstGateDistance;
 }
 
+/** Removes math gates and weapon barrels too close to the boss depth. */
+export function clearGatesNearWorldZ(state: GameState, z: number, clearance: number): number {
+  let cleared = 0;
+  for (let i = 0; i < state.gates.length; i += 1) {
+    const gate = state.gates[i];
+    if (!gate?.active) {
+      continue;
+    }
+    if (Math.abs(gate.z - z) < clearance) {
+      gate.active = false;
+      cleared += 1;
+    }
+  }
+  return cleared;
+}
+
+function deferGateSpawnForUpcomingBoss(state: GameState, minSeparation: number): void {
+  if (state.boss.active || state.nextBossDistance <= 0) {
+    return;
+  }
+  if (Math.abs(state.nextGateDistance - state.nextBossDistance) < minSeparation) {
+    state.nextGateDistance = state.nextBossDistance + minSeparation;
+  }
+}
+
 export function updateGateSpawn(
   state: GameState,
   rng: () => number = Math.random,
@@ -116,6 +143,16 @@ export function updateGateSpawn(
   if (state.nextGateDistance <= 0) {
     scheduleFirstGate(state);
   }
+  if (state.distance < state.nextGateDistance) {
+    return;
+  }
+
+  deferGateSpawnForUpcomingBoss(state, BOSS_CONFIG.minGateDistanceSeparation);
+
+  if (isBossPresent(state.boss)) {
+    return;
+  }
+
   if (state.distance < state.nextGateDistance) {
     return;
   }

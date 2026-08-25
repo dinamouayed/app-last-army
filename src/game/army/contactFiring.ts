@@ -1,5 +1,6 @@
 import { buildFootprintFromSlots, enemyOverlapsArmyFootprint, type FootprintSlice } from './footprint';
 import { GAME_CONFIG } from '../config/game';
+import type { Boss } from '../entities/boss';
 import type { Enemy } from '../entities/combat';
 import { playerWorldZ } from '../math/camera';
 import type { GameState } from '../types';
@@ -16,6 +17,13 @@ export function isEnemyInArmyContact(enemy: Enemy, footprint: FootprintSlice[]):
   return enemyOverlapsArmyFootprint(enemy.x, enemy.z, enemy.radius, footprint);
 }
 
+export function isBossInArmyContact(boss: Boss, footprint: FootprintSlice[]): boolean {
+  if (boss.behavior !== 'fighting') {
+    return false;
+  }
+  return enemyOverlapsArmyFootprint(boss.x, boss.z, boss.radius, footprint);
+}
+
 /** World-X offsets from armyX for enemies currently brawling with the crowd. */
 export function getContactEnemyOffsetXs(state: GameState): number[] {
   const footprint = buildArmyFootprintForState(state);
@@ -24,6 +32,9 @@ export function getContactEnemyOffsetXs(state: GameState): number[] {
   }
 
   const offsets: number[] = [];
+  if (state.boss.active && !state.boss.dying && isBossInArmyContact(state.boss, footprint)) {
+    offsets.push(state.boss.x - state.armyX);
+  }
   for (let i = 0; i < state.enemies.length; i += 1) {
     const enemy = state.enemies[i];
     if (!enemy?.active || enemy.dying) {

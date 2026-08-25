@@ -1,7 +1,8 @@
-import { SkiaPictureView } from '@shopify/react-native-skia';
+import { SkiaPictureView, useImage } from '@shopify/react-native-skia';
 import { useEffect, useRef, type RefObject } from 'react';
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 
+import { BOSS_ATLAS } from '../game/assets/bossAsset';
 import {
   createFrameStats,
   startGameLoop,
@@ -13,7 +14,12 @@ import { GAME_CONFIG } from '../game/config/game';
 import type { HudSnapshot } from '../game/types';
 import { createRenderResources } from './paints';
 import { recordFrame } from './recordFrame';
-import { getSkiaViewApi } from './skiaApi';
+import {
+  createSkPictureHolder,
+  disposeRenderResources,
+  disposeSkPictureHolder,
+  publishSkiaPicture,
+} from './skiaPicture';
 
 interface GameCanvasProps {
   sessionRef: RefObject<GameSession | null>;
@@ -26,6 +32,7 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
   const sizeRef = useRef({ width: 0, height: 0 });
   const onHudRef = useRef(onHud);
   const onGameOverRef = useRef(onGameOver);
+  const bossAtlas = useImage(BOSS_ATLAS);
   onHudRef.current = onHud;
   onGameOverRef.current = onGameOver;
 
@@ -38,6 +45,7 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
 
   useEffect(() => {
     const resources = createRenderResources();
+    const pictureHolder = createSkPictureHolder();
     const stats = createFrameStats();
     let hudAcc = 0;
 
@@ -48,18 +56,15 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
         return;
       }
 
+      resources.bossAtlas = bossAtlas ?? null;
+
       if (session.state.status === 'running') {
         session.update(dt);
       }
 
       updateFrameStats(stats, dt);
       const picture = recordFrame(resources, session.state, width, height);
-      const view = viewRef.current;
-      const api = getSkiaViewApi();
-      if (view && api) {
-        api.setJsiProperty(view.nativeId, 'picture', picture);
-        view.redraw();
-      }
+      publishSkiaPicture(viewRef.current, picture, pictureHolder);
 
       hudAcc += dt;
       if (hudAcc >= GAME_CONFIG.hudUpdateInterval) {
@@ -81,8 +86,12 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
       }
     }, GAME_CONFIG.maxDeltaSeconds);
 
-    return stop;
-  }, [sessionRef]);
+    return () => {
+      stop();
+      disposeSkPictureHolder(pictureHolder);
+      disposeRenderResources(resources);
+    };
+  }, [bossAtlas, sessionRef]);
 
   return (
     <View style={styles.canvas} onLayout={handleLayout}>

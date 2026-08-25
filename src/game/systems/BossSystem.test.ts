@@ -1,0 +1,171 @@
+import { describe, expect, it } from '@jest/globals';
+
+import { BOSS_CONFIG, bossMaxHpForDistance, bossSlamDamageForEncounter } from '../config/bosses';
+import { GAME_CONFIG } from '../config/game';
+import { WEAPONS } from '../config/weapons';
+import { createGameState } from '../engine/GameState';
+import { createEmptyGate } from '../entities/gates';
+import { playerWorldZ } from '../math/camera';
+import { applyProjectileBossHit, killBoss, scheduleFirstBoss, spawnBoss, updateBoss } from './BossSystem';
+import { resolveProjectileCollisions } from './CollisionSystem';
+import { clearGatesNearWorldZ, updateGates } from './GateSystem';
+import { updateSpawn } from './SpawnSystem';
+import { fireCurrentWeapon } from './ShootingSystem';
+
+describe('boss spawning', () => {
+  it('schedules the first boss at the configured distance', () => {
+    const state = createGameState();
+    expect(state.nextBossDistance).toBe(BOSS_CONFIG.firstBossDistance);
+  });
+
+  it('spawns a boss when distance reaches nextBossDistance', () => {
+    const state = createGameState();
+    state.distance = BOSS_CONFIG.firstBossDistance;
+    updateBoss(state, 0);
+    expect(state.boss.active).toBe(true);
+    expect(state.boss.maxHp).toBe(bossMaxHpForDistance(state.distance));
+    expect(state.boss.depthOffset).toBeGreaterThan(BOSS_CONFIG.fightDepthOffset);
+  });
+
+  it('keeps the boss ahead of the army while the player keeps running', () => {
+    const state = createGameState();
+    spawnBoss(state);
+    const startDistance = state.distance;
+    for (let i = 0; i < 120; i += 1) {
+      state.distance += 0.5;
+      updateBoss(state, 1 / 60);
+    }
+    expect(state.boss.active).toBe(true);
+    expect(state.boss.z).toBeGreaterThan(state.distance);
+    expect(state.distance - startDistance).toBeGreaterThan(20);
+  });
+
+  it('does not spawn regular enemies while a boss is active', () => {
+    const state = createGameState();
+    spawnBoss(state);
+    state.spawnTimer = 0;
+    updateSpawn(state, 0.1);
+    expect(state.spawnTimer).toBeGreaterThan(0);
+  });
+});
+
+describe('boss and gate separation', () => {
+  it('clears gates and barrels near the boss spawn depth', () => {
+    const state = createGameState();
+    const bossZ = playerWorldZ(state.distance, GAME_CONFIG.camera) + BOSS_CONFIG.spawnDepthOffset;
+    const mathGate = createEmptyGate();
+    mathGate.active = true;
+    mathGate.z = bossZ;
+    const barrel = createEmptyGate();
+    barrel.active = true;
+    barrel.kind = 'weapon';
+    barrel.z = bossZ + 20;
+    state.gates[0] = mathGate;
+    state.gates[1] = barrel;
+
+    spawnBoss(state);
+
+    expect(mathGate.active).toBe(false);
+    expect(barrel.active).toBe(false);
+    expect(state.boss.z).toBeCloseTo(bossZ);
+  });
+
+  it('pushes next gate spawn after a boss appears', () => {
+    const state = createGameState();
+    state.nextGateDistance = state.distance + 20;
+    spawnBoss(state);
+    expect(state.nextGateDistance).toBeGreaterThanOrEqual(
+      state.distance + BOSS_CONFIG.minGateDistanceSeparation,
+    );
+  });
+
+  it('defers first boss when it would overlap the next gate distance', () => {
+    const state = createGameState();
+    state.nextGateDistance = BOSS_CONFIG.firstBossDistance + 20;
+    scheduleFirstBoss(state);
+    expect(state.nextBossDistance).toBe(
+      state.nextGateDistance + BOSS_CONFIG.minGateDistanceSeparation,
+    );
+  });
+
+  it('does not spawn gates while a boss is active', () => {
+    const state = createGameState();
+    spawnBoss(state);
+    state.distance = state.nextGateDistance + 100;
+    state.nextGateDistance = state.distance - 1;
+    updateGates(state, 0);
+    expect(state.gates.every((gate) => !gate?.active)).toBe(true);
+  });
+
+  it('defers gate spawn when the next gate would coincide with an upcoming boss', () => {
+    const state = createGameState();
+    state.nextBossDistance = 400;
+    state.nextGateDistance = 395;
+    state.distance = 395;
+    updateGates(state, 0);
+    expect(state.nextGateDistance).toBe(400 + BOSS_CONFIG.minGateDistanceSeparation);
+  });
+
+  it('exports clearGatesNearWorldZ for boss spawn cleanup', () => {
+    const state = createGameState();
+    const gate = createEmptyGate();
+    gate.active = true;
+    gate.z = 100;
+    state.gates[0] = gate;
+    expect(clearGatesNearWorldZ(state, 100, 10)).toBe(1);
+    expect(gate.active).toBe(false);
+  });
+});
+
+describe('boss combat', () => {
+  it('scales slam damage by encounter index and caps the first boss', () => {
+    expect(bossSlamDamageForEncounter(320, 0, 50)).toBe(8);
+    expect(bossSlamDamageForEncounter(320, 0, 5)).toBe(2);
+    expect(bossSlamDamageForEncounter(320, 1, 50)).toBe(26);
+  });
+
+  it('reduces boss HP from projectile hits', () => {
+    const state = createGameState();
+    spawnBoss(state);
+    const startHp = state.boss.hp;
+    applyProjectileBossHit(state, WEAPONS.pistol.damage);
+    expect(state.boss.hp).toBe(startHp - WEAPONS.pistol.damage);
+  });
+
+  it('kills the boss at zero HP and schedules the next encounter', () => {
+    const state = createGameState();
+    state.distance = 500;
+    spawnBoss(state);
+    killBoss(state, state.boss);
+    expect(state.boss.dying).toBe(true);
+    updateBoss(state, BOSS_CONFIG.deathDuration);
+    expect(state.boss.active).toBe(false);
+    expect(state.nextBossDistance).toBe(state.distance + BOSS_CONFIG.bossInterval);
+  });
+
+  it('consumes projectiles that hit the boss', () => {
+    const state = createGameState();
+    spawnBoss(state);
+    const projectile = fireCurrentWeapon(state);
+    expect(projectile).not.toBeNull();
+    projectile!.prevX = state.armyX;
+    projectile!.prevZ = state.boss.z - 0.5;
+    projectile!.x = state.armyX;
+    projectile!.z = state.boss.z + 0.2;
+    resolveProjectileCollisions(state);
+    expect(projectile!.active).toBe(false);
+    expect(state.boss.hp).toBeLessThan(state.boss.maxHp);
+  });
+
+  it('slam attack kills soldiers in a burst without wiping a mid-size army instantly', () => {
+    const state = createGameState();
+    state.armySize = 50;
+    spawnBoss(state);
+    state.boss.behavior = 'fighting';
+    state.boss.attackPhase = 'slam';
+    state.boss.attackPhaseT = 0.001;
+    updateBoss(state, 0.01);
+    expect(state.armySize).toBe(42);
+    expect(state.status).toBe('running');
+  });
+});

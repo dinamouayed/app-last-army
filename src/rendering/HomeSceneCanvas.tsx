@@ -7,7 +7,12 @@ import { startGameLoop } from '../game/engine/GameLoop';
 import { createGameState } from '../game/engine/GameState';
 import { createRenderResources } from './paints';
 import { recordHomeFrame } from './recordFrame';
-import { getSkiaViewApi } from './skiaApi';
+import {
+  createSkPictureHolder,
+  disposeRenderResources,
+  disposeSkPictureHolder,
+  publishSkiaPicture,
+} from './skiaPicture';
 
 export function HomeSceneCanvas() {
   const viewRef = useRef<SkiaPictureView>(null);
@@ -22,6 +27,7 @@ export function HomeSceneCanvas() {
 
   useEffect(() => {
     const resources = createRenderResources();
+    const pictureHolder = createSkPictureHolder();
     const state = createGameState();
 
     const stop = startGameLoop((dt) => {
@@ -34,15 +40,14 @@ export function HomeSceneCanvas() {
       state.distance += GAME_CONFIG.forwardSpeed * 0.55 * dt;
 
       const picture = recordHomeFrame(resources, state, width, height);
-      const view = viewRef.current;
-      const api = getSkiaViewApi();
-      if (view && api) {
-        api.setJsiProperty(view.nativeId, 'picture', picture);
-        view.redraw();
-      }
+      publishSkiaPicture(viewRef.current, picture, pictureHolder);
     }, GAME_CONFIG.maxDeltaSeconds);
 
-    return stop;
+    return () => {
+      stop();
+      disposeSkPictureHolder(pictureHolder);
+      disposeRenderResources(resources);
+    };
   }, []);
 
   return (

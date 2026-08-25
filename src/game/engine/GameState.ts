@@ -3,10 +3,12 @@ import { createDyingVisualPool, createFormationBuffer } from '../army/formation'
 import { COMBAT_CONFIG } from '../config/combat';
 import { GAME_CONFIG } from '../config/game';
 import { createGateRuntimeState } from '../entities/gates';
+import { createBossRuntimeState } from '../entities/boss';
 import { STARTING_WEAPON } from '../config/weapons';
 import { laneIndexToX } from '../math/lanes';
 import type { GameState } from '../types';
 import { scheduleFirstGate } from '../systems/GateSystem';
+import { scheduleFirstBoss } from '../systems/BossSystem';
 
 export function createGameState(): GameState {
   const armyX = laneIndexToX(GAME_CONFIG.startingLane, GAME_CONFIG.laneSpacing);
@@ -40,9 +42,11 @@ export function createGameState(): GameState {
     enemies: [],
     particles: [],
     ...createGateRuntimeState(),
+    ...createBossRuntimeState(),
   };
 
   scheduleFirstGate(state);
+  scheduleFirstBoss(state);
   refreshFormation(state);
   return state;
 }
