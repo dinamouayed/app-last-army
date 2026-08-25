@@ -284,27 +284,27 @@ Introduce the primary army-growth decision mechanic.
 
 # Phase 5 — Shootable / Evolving Gates
 
-**Status:** ⬜ NOT STARTED
+**Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
 
 ## Objective
 
 Allow the player to invest firepower into improving gates.
 
-* [ ] Shootable gates
-* [ ] Gate HP/progress system
-* [ ] Projectile → gate collision
-* [ ] Gate value evolution
+* [x] Shootable gates
+* [x] Gate HP/progress system
+* [x] Projectile → gate collision
+* [x] Gate value evolution
 
 Example:
 
 `-10 → -9 → ... → 0 → +1 → ... → +25`
 
-* [ ] Configurable improvement threshold
-* [ ] Configurable maximum value
-* [ ] Negative → zero feedback
-* [ ] Zero → positive feedback
-* [ ] Visual number animation
-* [ ] Target-priority interaction with enemies
+* [x] Configurable improvement threshold
+* [x] Configurable maximum value
+* [x] Negative → zero feedback
+* [x] Zero → positive feedback
+* [x] Visual number animation
+* [x] Target-priority interaction with enemies
 
 ---
 

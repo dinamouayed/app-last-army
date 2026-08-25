@@ -5,6 +5,8 @@ export interface GateChoiceDraft {
   lane: LaneIndex;
   operation: GateOperation;
   value: number;
+  shootable?: boolean;
+  signedValue?: number;
 }
 
 function pickWeightedOperation(rng: () => number): GateOperation {
@@ -68,13 +70,34 @@ function pickLanes(count: 2 | 3, rng: () => number): LaneIndex[] {
   return lanes;
 }
 
+function pickShootableInitialValue(rng: () => number): number {
+  const values = GATE_CONFIG.shootable.initialValues;
+  const index = Math.floor(rng() * values.length);
+  return values[Math.min(index, values.length - 1)] ?? -10;
+}
+
+function maybeMakeShootable(choice: GateChoiceDraft, rng: () => number): GateChoiceDraft {
+  if (choice.operation === 'multiply' || rng() >= GATE_CONFIG.shootableGateWeight) {
+    return choice;
+  }
+  const signedValue = pickShootableInitialValue(rng);
+  return {
+    lane: choice.lane,
+    shootable: true,
+    signedValue,
+    operation: 'subtract',
+    value: Math.abs(signedValue),
+  };
+}
+
 function draftChoice(lane: LaneIndex, rng: () => number): GateChoiceDraft {
   const operation = pickWeightedOperation(rng);
-  return {
+  const choice: GateChoiceDraft = {
     lane,
     operation,
     value: pickValue(operation, rng),
   };
+  return maybeMakeShootable(choice, rng);
 }
 
 function isSurvivableSet(choices: GateChoiceDraft[], armySize: number): boolean {
@@ -82,6 +105,9 @@ function isSurvivableSet(choices: GateChoiceDraft[], armySize: number): boolean 
     const choice = choices[i];
     if (!choice) {
       continue;
+    }
+    if (choice.shootable) {
+      return true;
     }
     if (applyGateArithmetic(armySize, choice.operation, choice.value) > 0) {
       return true;

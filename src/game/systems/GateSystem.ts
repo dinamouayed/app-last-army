@@ -10,11 +10,12 @@ import { GAME_CONFIG } from '../config/game';
 import { acquireEntity } from '../entities/combat';
 import type { Particle } from '../entities/combat';
 import type { Gate } from '../entities/gates';
-import { livingGateCount } from '../entities/gates';
+import { createEmptyGate, livingGateCount } from '../entities/gates';
 import { playerWorldZ } from '../math/camera';
 import { asphaltLaneBounds, asphaltLaneCenterX } from '../math/roadBounds';
 import type { GameState, LaneIndex } from '../types';
 import { generateGateChoices } from './GateGenerator';
+import { applyHitToShootableGate, syncShootableGateDerived } from './gateEvolution';
 import { COMBAT_CONFIG } from '../config/combat';
 
 function nextGateId(state: GameState): number {
@@ -38,6 +39,27 @@ function minGateSpawnZ(armyFrontZ: number): number {
   return armyFrontZ + GATE_CONFIG.minSpawnAhead;
 }
 
+function initializeGateFromChoice(
+  gate: Gate,
+  choice: ReturnType<typeof generateGateChoices>[number],
+): void {
+  gate.lane = choice.lane;
+  gate.x = asphaltLaneCenterX(choice.lane, GAME_CONFIG.camera);
+  gate.operation = choice.operation;
+  gate.value = choice.value;
+  gate.shootable = choice.shootable === true;
+  gate.signedValue = choice.signedValue ?? 0;
+  gate.damageBuffer = 0;
+  gate.valueFlash = 0;
+  gate.evolvePulse = 0;
+  gate.evolvePulseKind = 'none';
+  gate.activated = false;
+  gate.fadeT = 0;
+  if (gate.shootable) {
+    syncShootableGateDerived(gate);
+  }
+}
+
 function spawnGateGroup(
   state: GameState,
   baseZ: number,
@@ -56,18 +78,7 @@ function spawnGateGroup(
     if (!choice) {
       continue;
     }
-    const gate = acquireEntity(state.gates, GATE_CONFIG.maxGates, () => ({
-      id: 0,
-      groupId: 0,
-      active: false,
-      lane: 1 as LaneIndex,
-      x: 0,
-      z: 0,
-      operation: 'add' as const,
-      value: 0,
-      activated: false,
-      fadeT: 0,
-    } satisfies Gate));
+    const gate = acquireEntity(state.gates, GATE_CONFIG.maxGates, () => createEmptyGate());
     if (!gate) {
       break;
     }
@@ -75,13 +86,8 @@ function spawnGateGroup(
     gate.id = nextGateId(state);
     gate.groupId = groupId;
     gate.active = true;
-    gate.lane = choice.lane;
-    gate.x = asphaltLaneCenterX(choice.lane, GAME_CONFIG.camera);
     gate.z = baseZ;
-    gate.operation = choice.operation;
-    gate.value = choice.value;
-    gate.activated = false;
-    gate.fadeT = 0;
+    initializeGateFromChoice(gate, choice);
     spawned += 1;
   }
 
@@ -157,6 +163,48 @@ function spawnGateActivationParticles(
   }
 }
 
+function triggerEvolveFeedback(state: GameState, gate: Gate): void {
+  state.gatePulseX = gate.x;
+  state.gatePulseZ = gate.z;
+  if (gate.evolvePulseKind === 'positive') {
+    state.gatePulse = GATE_CONFIG.shootable.positiveCrossPulseDuration;
+    state.gatePulsePositive = true;
+    spawnGateActivationParticles(state, gate.x, gate.z, true);
+    return;
+  }
+  if (gate.evolvePulseKind === 'zero') {
+    state.gatePulse = GATE_CONFIG.shootable.zeroCrossPulseDuration;
+    state.gatePulsePositive = true;
+    spawnGateActivationParticles(state, gate.x, gate.z, true);
+  }
+}
+
+export function applyProjectileGateHit(
+  state: GameState,
+  gateIndex: number,
+  _damage: number,
+): void {
+  const gate = state.gates[gateIndex];
+  if (!gate?.active || !gate.shootable || gate.activated) {
+    return;
+  }
+
+  const result = applyHitToShootableGate(gate, 1);
+  if (result.steps <= 0) {
+    return;
+  }
+
+  if (result.crossedPositive) {
+    gate.evolvePulseKind = 'positive';
+    gate.evolvePulse = GATE_CONFIG.shootable.positiveCrossPulseDuration;
+  } else if (result.crossedZero) {
+    gate.evolvePulseKind = 'zero';
+    gate.evolvePulse = GATE_CONFIG.shootable.zeroCrossPulseDuration;
+  }
+
+  triggerEvolveFeedback(state, gate);
+}
+
 function deactivateGateGroup(state: GameState, groupId: number, exceptGateId: number): void {
   for (let i = 0; i < state.gates.length; i += 1) {
     const gate = state.gates[i];
@@ -171,17 +219,28 @@ function activateGate(state: GameState, gate: Gate): void {
   if (gate.activated || state.status !== 'running') {
     return;
   }
+  if (gate.shootable) {
+    syncShootableGateDerived(gate);
+  }
+
   gate.activated = true;
   gate.fadeT = 0;
 
-  const positive = gate.operation === 'add' || gate.operation === 'multiply';
+  const positive =
+    gate.shootable ? gate.signedValue >= 0 : gate.operation === 'add' || gate.operation === 'multiply';
   state.gatePulse = GATE_CONFIG.activationFeedbackDuration;
   state.gatePulseX = gate.x;
   state.gatePulseZ = gate.z;
   state.gatePulsePositive = positive;
   spawnGateActivationParticles(state, gate.x, gate.z, positive);
 
-  if (gate.operation === 'add') {
+  if (gate.shootable) {
+    if (gate.signedValue > 0) {
+      addSoldiers(state, gate.signedValue);
+    } else if (gate.signedValue < 0) {
+      removeSoldiers(state, Math.abs(gate.signedValue), gate.x, gate.z);
+    }
+  } else if (gate.operation === 'add') {
     addSoldiers(state, gate.value);
   } else if (gate.operation === 'subtract') {
     removeSoldiers(state, gate.value, gate.x, gate.z);
@@ -196,14 +255,13 @@ function activateGate(state: GameState, gate: Gate): void {
 function resolveGateCrossings(state: GameState): void {
   const playerZ = playerWorldZ(state.distance, GAME_CONFIG.camera);
   const frontZ = armyFrontWorldZ(playerZ, state.formationSlots);
-  const triggerZ = frontZ;
 
   for (let i = 0; i < state.gates.length; i += 1) {
     const gate = state.gates[i];
     if (!gate?.active || gate.activated) {
       continue;
     }
-    if (triggerZ < gate.z) {
+    if (frontZ < gate.z) {
       continue;
     }
     if (!armyInGateLane(state.armyX, gate.lane)) {
@@ -240,7 +298,19 @@ export function updateGateVisuals(state: GameState, dt: number): void {
 
   for (let i = 0; i < state.gates.length; i += 1) {
     const gate = state.gates[i];
-    if (!gate?.active || !gate.activated) {
+    if (!gate?.active) {
+      continue;
+    }
+    if (gate.valueFlash > 0) {
+      gate.valueFlash = Math.max(0, gate.valueFlash - dt);
+    }
+    if (gate.evolvePulse > 0) {
+      gate.evolvePulse = Math.max(0, gate.evolvePulse - dt);
+      if (gate.evolvePulse <= 0) {
+        gate.evolvePulseKind = 'none';
+      }
+    }
+    if (!gate.activated) {
       continue;
     }
     gate.fadeT += dt;

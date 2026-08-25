@@ -10,6 +10,8 @@ export const COMBAT_CONFIG = {
   maxProjectiles: 48,
   maxParticles: 24,
   projectileRadius: 0.12,
+  /** Extra hit radius for enemies already brawling with the army. */
+  contactProjectileHitBonus: 0.22,
   muzzleWorldX: 0.16,
   muzzleWorldZ: 0.22,
   muzzleFlashDuration: 0.06,

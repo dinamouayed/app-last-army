@@ -30,6 +30,18 @@ export const GATE_CONFIG = {
   /** When rebalancing, favor these positive templates. */
   rescueAddValues: [10, 15, 20, 25, 30] as const,
   rescueMultiplyValues: [2] as const,
+  /** Chance for a spawned gate to be shootable / evolving. */
+  shootableGateWeight: 0.38,
+  shootable: {
+    initialValues: [-8, -10, -12, -15] as const,
+    maxValue: 25,
+    /** Projectile impacts required before the signed value steps by +1. */
+    hitsPerStep: 5,
+    hitRadius: 0.4,
+    valueFlashDuration: 0.16,
+    zeroCrossPulseDuration: 0.42,
+    positiveCrossPulseDuration: 0.42,
+  },
 } as const;
 
 export type GateConfig = typeof GATE_CONFIG;

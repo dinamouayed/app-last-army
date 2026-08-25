@@ -7,9 +7,12 @@ export interface FiringOrigin {
   offsetZ: number;
 }
 
-export function clampToFireCorridor(offsetX: number): number {
-  const half = ARMY_CONFIG.fireCorridorHalfWidth;
-  return Math.max(-half, Math.min(half, offsetX));
+export interface FiringOriginOptions {
+  contactOffsetX?: number[];
+}
+
+export function clampToFireCorridor(offsetX: number, halfWidth: number = ARMY_CONFIG.fireCorridorHalfWidth): number {
+  return Math.max(-halfWidth, Math.min(halfWidth, offsetX));
 }
 
 /** Bounded count of projectile spawns per volley — clustered, not road-wide. */
@@ -46,10 +49,15 @@ export { armyFireRateMultiplier };
 export function getArmyFiringOrigins(
   formationSlots: FormationSlot[],
   armySize: number,
+  options: FiringOriginOptions = {},
 ): FiringOrigin[] {
+  const contactOffsets = options.contactOffsetX ?? [];
+  const inContact = contactOffsets.length > 0;
+  const corridorHalf = inContact
+    ? ARMY_CONFIG.contactFireCorridorHalfWidth
+    : ARMY_CONFIG.fireCorridorHalfWidth;
   const count = Math.min(firingOriginCount(armySize), ARMY_CONFIG.maxFiringOrigins);
   const frontIndices = sortedSlotIndices(formationSlots);
-  const corridorHalf = ARMY_CONFIG.fireCorridorHalfWidth;
   const maxDepth = ARMY_CONFIG.maxFiringFormationDepth;
 
   const candidates: FiringOrigin[] = [];
@@ -62,17 +70,17 @@ export function getArmyFiringOrigins(
     if (!slot?.active || slot.dying || slot.depth > maxDepth) {
       continue;
     }
-    if (Math.abs(slot.offsetX) > corridorHalf) {
+    if (!inContact && Math.abs(slot.offsetX) > corridorHalf) {
       continue;
     }
     candidates.push({
-      offsetX: clampToFireCorridor(slot.offsetX),
+      offsetX: clampToFireCorridor(slot.offsetX, corridorHalf),
       offsetZ: slot.offsetZ,
     });
   }
 
   if (candidates.length === 0) {
-    return [{ offsetX: 0, offsetZ: 0 }];
+    candidates.push({ offsetX: 0, offsetZ: 0 });
   }
 
   candidates.sort(
@@ -90,8 +98,19 @@ export function getArmyFiringOrigins(
     const spread = ARMY_CONFIG.fireOriginClusterSpread;
     const jitter = ((i % 3) - 1) * spread * 0.35;
     picked.push({
-      offsetX: clampToFireCorridor(source.offsetX + jitter),
+      offsetX: clampToFireCorridor(source.offsetX + jitter, corridorHalf),
       offsetZ: source.offsetZ,
+    });
+  }
+
+  for (let i = 0; i < contactOffsets.length; i += 1) {
+    const offsetX = contactOffsets[i];
+    if (offsetX === undefined) {
+      continue;
+    }
+    picked.push({
+      offsetX: clampToFireCorridor(offsetX, corridorHalf),
+      offsetZ: 0,
     });
   }
 
@@ -102,6 +121,7 @@ export function getArmyFiringOrigins(
 export function firingCorridorContains(
   worldX: number,
   armyX: number,
+  halfWidth: number = ARMY_CONFIG.fireCorridorHalfWidth,
 ): boolean {
-  return Math.abs(worldX - armyX) <= ARMY_CONFIG.fireCorridorHalfWidth + 0.001;
+  return Math.abs(worldX - armyX) <= halfWidth + 0.001;
 }

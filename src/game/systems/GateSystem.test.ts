@@ -5,7 +5,7 @@ import { visibleSoldierCount } from '../army/formation';
 import { GATE_CONFIG } from '../config/gates';
 import { GAME_CONFIG } from '../config/game';
 import { createGameState } from '../engine/GameState';
-import { livingGateCount } from '../entities/gates';
+import { createEmptyGate, livingGateCount } from '../entities/gates';
 import { playerWorldZ } from '../math/camera';
 import { asphaltLaneCenterX } from '../math/roadBounds';
 import { laneIndexToX } from '../math/lanes';
@@ -17,19 +17,23 @@ function makeGate(
   operation: Gate['operation'],
   value: number,
   z: number,
+  shootable = false,
+  signedValue = 0,
 ): Gate {
-  return {
-    id: 1,
-    groupId: 1,
-    active: true,
-    lane,
-    x: asphaltLaneCenterX(lane, GAME_CONFIG.camera),
-    z,
-    operation,
-    value,
-    activated: false,
-    fadeT: 0,
-  };
+  const gate = createEmptyGate();
+  gate.id = 1;
+  gate.groupId = 1;
+  gate.active = true;
+  gate.lane = lane;
+  gate.x = asphaltLaneCenterX(lane, GAME_CONFIG.camera);
+  gate.z = z;
+  gate.operation = operation;
+  gate.value = value;
+  gate.shootable = shootable;
+  gate.signedValue = signedValue;
+  gate.activated = false;
+  gate.fadeT = 0;
+  return gate;
 }
 
 describe('gate activation', () => {
@@ -70,6 +74,24 @@ describe('gate activation', () => {
 
     expect(state.armySize).toBe(12);
     expect(state.visibleCount).toBe(12);
+  });
+
+  it('uses the evolved signed value for shootable gates', () => {
+    const state = createGameState();
+    state.armySize = 10;
+    refreshFormation(state);
+    const gate = makeGate(
+      1,
+      'add',
+      5,
+      playerWorldZ(state.distance, GAME_CONFIG.camera) + 2,
+      true,
+      5,
+    );
+
+    applyGateToArmy(state, gate);
+
+    expect(state.armySize).toBe(15);
   });
 
   it('activates only the gate in the army lane when crossing', () => {

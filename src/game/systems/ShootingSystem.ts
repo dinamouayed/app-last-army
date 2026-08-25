@@ -3,6 +3,7 @@ import {
   armyFireRateMultiplier,
   getArmyFiringOrigins,
 } from '../army/firing';
+import { getContactEnemyOffsetXs } from '../army/contactFiring';
 import { COMBAT_CONFIG } from '../config/combat';
 import { GAME_CONFIG } from '../config/game';
 import { getWeapon } from '../config/weapons';
@@ -53,7 +54,9 @@ function spawnProjectile(
 
 export function fireCurrentWeapon(state: GameState): Projectile | null {
   const weapon = getWeapon(state.weaponId);
-  const origins = getArmyFiringOrigins(state.formationSlots, state.armySize);
+  const origins = getArmyFiringOrigins(state.formationSlots, state.armySize, {
+    contactOffsetX: getContactEnemyOffsetXs(state),
+  });
   const playerZ = playerWorldZ(state.distance, GAME_CONFIG.camera);
   const baseZ = playerZ + COMBAT_CONFIG.muzzleWorldZ;
   const damage = weapon.damage * armyDamageMultiplier(state.armySize);
