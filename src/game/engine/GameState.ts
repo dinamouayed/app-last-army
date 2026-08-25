@@ -28,6 +28,7 @@ export function createGameState(): GameState {
     fireOriginIndex: 0,
     dyingVisuals: createDyingVisualPool(),
     weaponId: STARTING_WEAPON,
+    unlockedWeapons: ['pistol'],
     fireAccumulator: 0,
     muzzleFlash: 0,
     contactPulse: 0,

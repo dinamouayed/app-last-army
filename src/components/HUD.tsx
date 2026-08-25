@@ -7,6 +7,7 @@ import { formatDistance } from '../game/math/format';
 interface HUDProps {
   armySize: number;
   distance: number;
+  weaponName: string;
   elapsed: number;
   hasChangedLane: boolean;
 }
@@ -28,6 +29,7 @@ function swipeHintOpacity(elapsed: number, hasChangedLane: boolean): number {
 export function HUD({
   armySize,
   distance,
+  weaponName,
   elapsed,
   hasChangedLane,
 }: HUDProps) {
@@ -44,7 +46,13 @@ export function HUD({
           <Text style={styles.armyCount}>{Math.max(0, Math.floor(armySize))}</Text>
         </View>
         <Text style={styles.distance}>{formatDistance(distance)}</Text>
-        <View style={styles.sideSpacer} />
+        <View style={styles.weaponWrap}>
+          <View style={styles.weaponIcon}>
+            <View style={styles.weaponBarrel} />
+            <View style={styles.weaponBody} />
+          </View>
+          <Text style={styles.weaponName}>{weaponName}</Text>
+        </View>
       </View>
       {hintOpacity > 0.02 ? (
         <Text style={[styles.hint, { opacity: hintOpacity }]}>←  SWIPE  →</Text>
@@ -99,8 +107,40 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
-  sideSpacer: {
+  weaponWrap: {
     width: 88,
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  weaponIcon: {
+    width: 22,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  weaponBarrel: {
+    position: 'absolute',
+    top: 0,
+    width: 14,
+    height: 5,
+    borderRadius: 2,
+    backgroundColor: PALETTE.weaponMetal,
+  },
+  weaponBody: {
+    width: 12,
+    height: 10,
+    borderRadius: 2,
+    backgroundColor: PALETTE.weaponCrate,
+  },
+  weaponName: {
+    color: PALETTE.accent,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+    textAlign: 'right',
+    textShadowColor: 'rgba(20,40,10,0.45)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   distance: {
     color: PALETTE.hudText,

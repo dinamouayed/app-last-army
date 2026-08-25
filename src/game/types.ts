@@ -1,6 +1,7 @@
 import type { CombatState } from './entities/combat';
 import type { GateRuntimeState } from './entities/gates';
 import type { FormationSlot, DyingSoldierVisual } from './army/formation';
+import type { WeaponId } from './config/weapons';
 
 export type LaneIndex = 0 | 1 | 2;
 
@@ -32,6 +33,8 @@ export interface InputState {
 export interface HudSnapshot {
   distance: number;
   armySize: number;
+  weaponId: WeaponId;
+  weaponName: string;
   fps: number;
   elapsed: number;
   hasChangedLane: boolean;

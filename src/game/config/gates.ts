@@ -42,6 +42,16 @@ export const GATE_CONFIG = {
     zeroCrossPulseDuration: 0.42,
     positiveCrossPulseDuration: 0.42,
   },
+  /** Weapon barrel gates — lane choice alongside math gates. */
+  weaponGate: {
+    /** Chance to replace one lane in a gate group with a weapon barrel. */
+    choiceWeight: 0.42,
+    hitRadius: 0.44,
+    hitFlashDuration: 0.1,
+    explodeDuration: 0.62,
+    absorbDuration: 0.58,
+    unlockPulseDuration: 0.55,
+  },
 } as const;
 
 export type GateConfig = typeof GATE_CONFIG;

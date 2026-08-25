@@ -1,7 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { getWeapon, WEAPON_PROGRESSION, type WeaponId } from '../game/config/weapons';
 import { PALETTE } from '../game/config/palette';
 import type { GameSession } from '../game/engine/GameSession';
+import { equipWeapon } from '../game/systems/GateSystem';
 
 interface DevArmyControlsProps {
   session: GameSession;
@@ -29,6 +31,16 @@ export function DevArmyControls({ session }: DevArmyControlsProps) {
             key={size}
             label={String(size)}
             onPress={() => session.devSetArmySize(size)}
+          />
+        ))}
+      </View>
+      <Text style={styles.label}>DEV WEAPONS</Text>
+      <View style={styles.row}>
+        {WEAPON_PROGRESSION.map((weaponId) => (
+          <DevButton
+            key={weaponId}
+            label={getWeapon(weaponId).name.slice(0, 3).toUpperCase()}
+            onPress={() => equipWeapon(session.state, weaponId as WeaponId)}
           />
         ))}
       </View>

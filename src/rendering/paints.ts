@@ -82,6 +82,16 @@ export interface Paints {
   gateLabelShadow: SkPaint;
   gateParticlePositive: SkPaint;
   gateParticleNegative: SkPaint;
+  weaponGlow: SkPaint;
+  weaponGlowOuter: SkPaint;
+  weaponCrate: SkPaint;
+  weaponCrateDark: SkPaint;
+  barrelWood: SkPaint;
+  barrelWoodDark: SkPaint;
+  barrelHoop: SkPaint;
+  weaponMetal: SkPaint;
+  weaponLabel: SkPaint;
+  accent: SkPaint;
   hint: SkPaint;
 }
 
@@ -186,6 +196,16 @@ export function createRenderResources(): RenderResources {
       gateLabelShadow: fillPaint(PALETTE.gateLabelShadow),
       gateParticlePositive: fillPaint(PALETTE.gatePositiveGlow),
       gateParticleNegative: fillPaint(PALETTE.gateNegativeGlow),
+      weaponGlow: fillPaint(PALETTE.weaponGlow),
+      weaponGlowOuter: fillPaint(PALETTE.weaponGlowOuter),
+      weaponCrate: fillPaint(PALETTE.weaponCrate),
+      weaponCrateDark: fillPaint(PALETTE.weaponCrateDark),
+      barrelWood: fillPaint(PALETTE.barrelWood),
+      barrelWoodDark: fillPaint(PALETTE.barrelWoodDark),
+      barrelHoop: fillPaint(PALETTE.barrelHoop),
+      weaponMetal: fillPaint(PALETTE.weaponMetal),
+      weaponLabel: fillPaint(PALETTE.weaponLabel),
+      accent: fillPaint(PALETTE.accent),
       hint: fillPaint(PALETTE.hint),
     },
   };

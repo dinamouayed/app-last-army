@@ -11,6 +11,7 @@ export interface Projectile {
   prevZ: number;
   damage: number;
   speed: number;
+  vx: number;
   radius: number;
 }
 
@@ -45,6 +46,7 @@ export interface Particle {
 
 export interface CombatState {
   weaponId: WeaponId;
+  unlockedWeapons: WeaponId[];
   fireAccumulator: number;
   muzzleFlash: number;
   contactPulse: number;

@@ -4,6 +4,7 @@ import { PanResponder, StyleSheet, Text, View } from 'react-native';
 import { ExitButton } from '../components/ExitButton';
 import { DevArmyControls } from '../components/DevArmyControls';
 import { HUD } from '../components/HUD';
+import { getWeapon } from '../game/config/weapons';
 import { PALETTE } from '../game/config/palette';
 import { GameSession } from '../game/engine/GameSession';
 import type { HudSnapshot } from '../game/types';
@@ -19,6 +20,8 @@ export function GameScreen({ onGameOver, onExit }: GameScreenProps) {
   const [hud, setHud] = useState<HudSnapshot>({
     distance: 0,
     armySize: 1,
+    weaponId: 'pistol',
+    weaponName: getWeapon('pistol').name,
     fps: 60,
     elapsed: 0,
     hasChangedLane: false,
@@ -58,6 +61,7 @@ export function GameScreen({ onGameOver, onExit }: GameScreenProps) {
       <HUD
         armySize={hud.armySize}
         distance={hud.distance}
+        weaponName={hud.weaponName}
         elapsed={hud.elapsed}
         hasChangedLane={hud.hasChangedLane}
       />

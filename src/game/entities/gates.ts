@@ -1,5 +1,8 @@
 import type { GateOperation } from '../config/gates';
+import type { WeaponId } from '../config/weapons';
 import type { LaneIndex } from '../types';
+
+export type GateKind = 'math' | 'weapon';
 
 export interface Gate {
   id: number;
@@ -8,12 +11,20 @@ export interface Gate {
   lane: LaneIndex;
   x: number;
   z: number;
+  kind: GateKind;
   operation: GateOperation;
   value: number;
-  /** Shootable gates evolve via signedValue instead of fixed operations. */
+  /** Shootable math gates evolve via signedValue instead of fixed operations. */
   shootable: boolean;
   signedValue: number;
   damageBuffer: number;
+  /** Weapon barrel HP — decreases when shot; crossing while HP > 0 is lethal. */
+  weaponId: WeaponId | null;
+  weaponHp: number;
+  weaponMaxHp: number;
+  weaponReady: boolean;
+  explodeT: number;
+  weaponAbsorbT: number;
   valueFlash: number;
   evolvePulse: number;
   evolvePulseKind: 'none' | 'zero' | 'positive';
@@ -53,11 +64,18 @@ export function createEmptyGate(): Gate {
     lane: 1,
     x: 0,
     z: 0,
+    kind: 'math',
     operation: 'add',
     value: 0,
     shootable: false,
     signedValue: 0,
     damageBuffer: 0,
+    weaponId: null,
+    weaponHp: 0,
+    weaponMaxHp: 0,
+    weaponReady: false,
+    explodeT: 0,
+    weaponAbsorbT: 0,
     valueFlash: 0,
     evolvePulse: 0,
     evolvePulseKind: 'none',
@@ -77,7 +95,14 @@ export function livingGateCount(gates: Gate[]): number {
   return count;
 }
 
+export function isWeaponGate(gate: Gate): boolean {
+  return gate.kind === 'weapon';
+}
+
 export function formatGateLabel(gate: Gate): string {
+  if (gate.kind === 'weapon') {
+    return String(Math.max(0, gate.weaponHp));
+  }
   if (gate.shootable) {
     if (gate.signedValue > 0) {
       return `+${gate.signedValue}`;
@@ -97,6 +122,9 @@ export function formatGateLabel(gate: Gate): string {
 }
 
 export function isPositiveGate(gate: Gate): boolean {
+  if (gate.kind === 'weapon') {
+    return gate.weaponReady;
+  }
   if (gate.shootable) {
     return gate.signedValue >= 0;
   }
@@ -104,8 +132,18 @@ export function isPositiveGate(gate: Gate): boolean {
 }
 
 export function isNegativeGate(gate: Gate): boolean {
+  if (gate.kind === 'weapon') {
+    return !gate.weaponReady;
+  }
   if (gate.shootable) {
     return gate.signedValue < 0;
   }
   return gate.operation === 'subtract';
+}
+
+export function weaponGateProgress(gate: Gate): number {
+  if (!isWeaponGate(gate) || gate.weaponMaxHp <= 0) {
+    return 0;
+  }
+  return gate.weaponHp / gate.weaponMaxHp;
 }

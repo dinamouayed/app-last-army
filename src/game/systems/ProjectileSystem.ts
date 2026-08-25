@@ -12,6 +12,7 @@ export function updateProjectiles(state: GameState, dt: number): void {
     }
     projectile.prevX = projectile.x;
     projectile.prevZ = projectile.z;
+    projectile.x += projectile.vx * dt;
     projectile.z += projectile.speed * dt;
     if (projectile.z > farZ || projectile.z < clipZ) {
       projectile.active = false;

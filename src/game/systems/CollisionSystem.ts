@@ -1,6 +1,7 @@
 import { COMBAT_CONFIG } from '../config/combat';
 import { GATE_CONFIG } from '../config/gates';
 import type { GameState } from '../types';
+import { isWeaponGate } from '../entities/gates';
 import { segmentCircleHitT } from '../math/collision';
 import {
   buildArmyFootprintForState,
@@ -69,6 +70,29 @@ function findBestEnemyHit(
   return { index: bestIndex, t: bestT };
 }
 
+function gateHitRadius(gate: { kind: string; shootable: boolean }): number {
+  if (isWeaponGate(gate as Parameters<typeof isWeaponGate>[0])) {
+    return GATE_CONFIG.weaponGate.hitRadius;
+  }
+  return GATE_CONFIG.shootable.hitRadius;
+}
+
+function isHittableGate(gate: {
+  active: boolean;
+  activated: boolean;
+  kind: string;
+  shootable: boolean;
+  weaponReady: boolean;
+}): boolean {
+  if (!gate.active || gate.activated) {
+    return false;
+  }
+  if (isWeaponGate(gate as Parameters<typeof isWeaponGate>[0])) {
+    return !gate.weaponReady;
+  }
+  return gate.shootable;
+}
+
 function findBestGateHit(
   state: GameState,
   prevX: number,
@@ -79,14 +103,21 @@ function findBestGateHit(
 ): { index: number; t: number } | null {
   let bestT = 2;
   let bestIndex = -1;
-  const gateRadius = GATE_CONFIG.shootable.hitRadius + radiusPad;
 
   for (let g = 0; g < state.gates.length; g += 1) {
     const gate = state.gates[g];
-    if (!gate?.active || !gate.shootable || gate.activated) {
+    if (!gate || !isHittableGate(gate)) {
       continue;
     }
-    const t = segmentCircleHitT(prevX, prevZ, x, z, gate.x, gate.z, gateRadius);
+    const t = segmentCircleHitT(
+      prevX,
+      prevZ,
+      x,
+      z,
+      gate.x,
+      gate.z,
+      gateHitRadius(gate) + radiusPad,
+    );
     if (t !== null && t < bestT) {
       bestT = t;
       bestIndex = g;
@@ -103,7 +134,7 @@ export function resolveProjectileEnemyCollisions(state: GameState): void {
   resolveProjectileCollisions(state);
 }
 
-/** Enemies take priority over shootable gates on the same projectile path. */
+/** Enemies take priority over shootable / weapon gates. */
 export function resolveProjectileCollisions(state: GameState): void {
   const footprint = buildArmyFootprintForState(state);
 

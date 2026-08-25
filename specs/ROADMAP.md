@@ -42,13 +42,13 @@ Status values:
 
 # Current Status
 
-**Current phase:** Phase 3 — Army System
+**Current phase:** Phase 6 — Weapons
 
 **Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
 
-Phase 1, Phase 1.5 and Phase 2 are validated. Phase 3 army system (logical crowd, formation, army damage, game over) is implemented and waiting for manual validation.
+Phases 1, 1.5, 2, 3, 4 and 5 are validated. Phase 6 weapon progression (configs, unlock objects, HUD) is implemented and waiting for manual validation.
 
-Do NOT start Phase 4 until Phase 3 has been manually validated.
+Do NOT start Phase 7 until Phase 6 has been manually validated.
 
 ---
 
@@ -179,7 +179,7 @@ Before Phase 2:
 
 # Phase 2 — Shooting & First Enemy
 
-**Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
+**Status:** 🟢 VALIDATED
 
 ## Objective
 
@@ -217,13 +217,13 @@ The player must be able to:
 6. kill it;
 7. continue running.
 
-Manual validation is still required before Phase 3.
+Manual validation completed before Phase 3.
 
 ---
 
 # Phase 3 — Army System
 
-**Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
+**Status:** 🟢 VALIDATED
 
 ## Objective
 
@@ -262,7 +262,7 @@ A logical army containing hundreds or thousands of soldiers must NOT require ren
 
 # Phase 4 — Math Gates
 
-**Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
+**Status:** 🟢 VALIDATED
 
 ## Objective
 
@@ -284,7 +284,7 @@ Introduce the primary army-growth decision mechanic.
 
 # Phase 5 — Shootable / Evolving Gates
 
-**Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
+**Status:** 🟢 VALIDATED
 
 ## Objective
 
@@ -310,7 +310,7 @@ Example:
 
 # Phase 6 — Weapons
 
-**Status:** ⬜ NOT STARTED
+**Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
 
 ## Objective
 
@@ -318,29 +318,34 @@ Introduce meaningful weapon progression during a run.
 
 ## Weapons
 
-* [ ] Pistol
-* [ ] SMG
-* [ ] Shotgun
-* [ ] Machine Gun
+* [x] Pistol
+* [x] SMG
+* [x] Shotgun
+* [x] Machine Gun
 
 ## Weapon System
 
-* [ ] Centralized weapon configuration
-* [ ] Damage
-* [ ] Fire rate
-* [ ] Projectile speed
-* [ ] Projectile count
-* [ ] Spread
-* [ ] Weapon-specific firing behavior
+* [x] Centralized weapon configuration
+* [x] Damage
+* [x] Fire rate
+* [x] Projectile speed
+* [x] Projectile count
+* [x] Spread
+* [x] Weapon-specific firing behavior
 
 ## Weapon Unlock Objects
 
-* [ ] Shootable weapon unlock objects
-* [ ] Unlock progress / HP
-* [ ] Increasing unlock costs
-* [ ] Equip unlocked weapon
-* [ ] Unlock animation
-* [ ] Unlock feedback
+Weapon unlocks appear as **wooden barrel gates** in lane choice sets (alongside +/−/× gates).
+
+* [x] Shootable weapon barrel gates (lane choice)
+* [x] HP number displayed on barrel — decreases when shot
+* [x] Unlock weapon when HP reaches 0 (explosion + equip)
+* [x] Lethal if army crosses barrel before HP reaches 0
+* [x] Player can switch lanes to pick a math gate instead
+* [x] Increasing unlock costs (scale with distance)
+* [x] Equip unlocked weapon
+* [x] Barrel explosion animation
+* [x] Unlock feedback banner
 
 ---
 
@@ -559,7 +564,7 @@ The first complete MVP is reached when the player can:
 * [ ] Grow and lose soldiers
 * [ ] Choose mathematical gates
 * [ ] Improve shootable gates
-* [ ] Unlock stronger weapons
+* [x] Unlock stronger weapons
 * [ ] Encounter increasingly difficult enemies
 * [ ] Fight bosses
 * [ ] Survive bosses and continue the same run
@@ -580,8 +585,8 @@ The intended core loop remains:
 
 Manually validate:
 
-**Phase 2 — Shooting & First Enemy**
+**Phase 6 — Weapons**
 
 Then, and only then:
 
-**Phase 3 — Army System**
+**Phase 7 — Boss System**

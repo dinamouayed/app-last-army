@@ -7,7 +7,7 @@ export const COMBAT_CONFIG = {
   firstSpawnDelay: 1.1,
   minEnemySpacing: 1.6,
   maxEnemies: 14,
-  maxProjectiles: 48,
+  maxProjectiles: 72,
   maxParticles: 24,
   projectileRadius: 0.12,
   /** Extra hit radius for enemies already brawling with the army. */

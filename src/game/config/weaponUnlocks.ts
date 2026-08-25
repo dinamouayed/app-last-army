@@ -1,0 +1,35 @@
+import type { WeaponId } from './weapons';
+
+export const WEAPON_UNLOCK_CONFIG = {
+  maxActive: 2,
+  firstUnlockDistance: 110,
+  minSpacing: 160,
+  maxSpacing: 280,
+  spawnAhead: 50,
+  minSpawnAhead: 36,
+  spawnRetryDelay: 0.5,
+  hitRadius: 0.44,
+  hitFlashDuration: 0.1,
+  unlockPulseDuration: 0.55,
+  fadeOutDuration: 0.32,
+  messageDuration: 2.2,
+  /** Base HP per weapon tier — each projectile hit removes 1 HP. */
+  unlockCosts: {
+    smg: 25,
+    shotgun: 50,
+    machineGun: 85,
+  } satisfies Record<Exclude<WeaponId, 'pistol'>, number>,
+  /** Additional cost multiplier per 100 m traveled. */
+  costScalePer100m: 0.02,
+} as const;
+
+export type WeaponUnlockConfig = typeof WEAPON_UNLOCK_CONFIG;
+
+export function scaledUnlockCost(
+  weaponId: Exclude<WeaponId, 'pistol'>,
+  distance: number,
+): number {
+  const base = WEAPON_UNLOCK_CONFIG.unlockCosts[weaponId];
+  const scale = 1 + (distance / 100) * WEAPON_UNLOCK_CONFIG.costScalePer100m;
+  return Math.max(1, Math.floor(base * scale));
+}

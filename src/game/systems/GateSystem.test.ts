@@ -10,7 +10,7 @@ import { playerWorldZ } from '../math/camera';
 import { asphaltLaneCenterX } from '../math/roadBounds';
 import { laneIndexToX } from '../math/lanes';
 import type { Gate } from '../entities/gates';
-import { applyGateToArmy, updateGates } from './GateSystem';
+import { applyGateToArmy, applyProjectileGateHit, updateGates } from './GateSystem';
 
 function makeGate(
   lane: 0 | 1 | 2,
@@ -25,12 +25,41 @@ function makeGate(
   gate.groupId = 1;
   gate.active = true;
   gate.lane = lane;
+  gate.kind = 'math';
   gate.x = asphaltLaneCenterX(lane, GAME_CONFIG.camera);
   gate.z = z;
   gate.operation = operation;
   gate.value = value;
   gate.shootable = shootable;
   gate.signedValue = signedValue;
+  gate.weaponReady = false;
+  gate.explodeT = 0;
+  gate.weaponAbsorbT = 0;
+  gate.activated = false;
+  gate.fadeT = 0;
+  return gate;
+}
+
+function makeWeaponGate(
+  lane: 0 | 1 | 2,
+  weaponId: Gate['weaponId'],
+  hp: number,
+  z: number,
+): Gate {
+  const gate = createEmptyGate();
+  gate.id = 2;
+  gate.groupId = 1;
+  gate.active = true;
+  gate.lane = lane;
+  gate.kind = 'weapon';
+  gate.weaponId = weaponId;
+  gate.weaponHp = hp;
+  gate.weaponMaxHp = hp;
+  gate.x = asphaltLaneCenterX(lane, GAME_CONFIG.camera);
+  gate.z = z;
+  gate.weaponReady = false;
+  gate.explodeT = 0;
+  gate.weaponAbsorbT = 0;
   gate.activated = false;
   gate.fadeT = 0;
   return gate;
@@ -118,5 +147,39 @@ describe('gate activation', () => {
     const activated = state.gates.filter((gate) => gate.activated);
     expect(activated.length).toBe(1);
     expect(activated[0]?.lane).toBe(0);
+  });
+
+  it('kills the army when crossing a weapon barrel before it reaches zero', () => {
+    const state = createGameState();
+    state.armySize = 12;
+    refreshFormation(state);
+    const gate = makeWeaponGate(
+      1,
+      'smg',
+      40,
+      playerWorldZ(state.distance, GAME_CONFIG.camera) + 2,
+    );
+
+    applyGateToArmy(state, gate);
+
+    expect(state.armySize).toBe(0);
+    expect(state.status).toBe('gameover');
+  });
+
+  it('unlocks the weapon when shooting a barrel down to zero', () => {
+    const state = createGameState();
+    state.gates.push(
+      makeWeaponGate(1, 'smg', 2, playerWorldZ(state.distance, GAME_CONFIG.camera) + 5),
+    );
+
+    applyProjectileGateHit(state, 0, 0);
+    expect(state.gates[0]!.weaponHp).toBe(1);
+    expect(state.weaponId).toBe('pistol');
+
+    applyProjectileGateHit(state, 0, 0);
+    expect(state.gates[0]!.weaponHp).toBe(0);
+    expect(state.weaponId).toBe('smg');
+    expect(state.unlockedWeapons).toContain('smg');
+    expect(state.gates[0]!.explodeT).toBeGreaterThan(0);
   });
 });

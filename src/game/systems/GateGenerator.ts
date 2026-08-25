@@ -1,12 +1,21 @@
 import { GATE_CONFIG, type GateOperation } from '../config/gates';
+import { scaledUnlockCost } from '../config/weaponUnlocks';
+import {
+  isRepeatWeaponUnlock,
+  pickWeaponForBarrelGate,
+  type WeaponId,
+} from '../config/weapons';
 import type { LaneIndex } from '../types';
 
 export interface GateChoiceDraft {
   lane: LaneIndex;
-  operation: GateOperation;
-  value: number;
+  kind: 'math' | 'weapon';
+  operation?: GateOperation;
+  value?: number;
   shootable?: boolean;
   signedValue?: number;
+  weaponId?: WeaponId;
+  weaponHp?: number;
 }
 
 function pickWeightedOperation(rng: () => number): GateOperation {
@@ -77,12 +86,13 @@ function pickShootableInitialValue(rng: () => number): number {
 }
 
 function maybeMakeShootable(choice: GateChoiceDraft, rng: () => number): GateChoiceDraft {
-  if (choice.operation === 'multiply' || rng() >= GATE_CONFIG.shootableGateWeight) {
+  if (choice.kind === 'weapon' || choice.operation === 'multiply' || rng() >= GATE_CONFIG.shootableGateWeight) {
     return choice;
   }
   const signedValue = pickShootableInitialValue(rng);
   return {
     lane: choice.lane,
+    kind: 'math',
     shootable: true,
     signedValue,
     operation: 'subtract',
@@ -90,14 +100,36 @@ function maybeMakeShootable(choice: GateChoiceDraft, rng: () => number): GateCho
   };
 }
 
-function draftChoice(lane: LaneIndex, rng: () => number): GateChoiceDraft {
+function draftMathChoice(lane: LaneIndex, rng: () => number): GateChoiceDraft {
   const operation = pickWeightedOperation(rng);
   const choice: GateChoiceDraft = {
     lane,
+    kind: 'math',
     operation,
     value: pickValue(operation, rng),
   };
   return maybeMakeShootable(choice, rng);
+}
+
+function draftWeaponChoice(
+  lane: LaneIndex,
+  weaponId: WeaponId,
+  distance: number,
+  unlocked: readonly WeaponId[],
+): GateChoiceDraft {
+  let cost = scaledUnlockCost(
+    weaponId as Exclude<WeaponId, 'pistol'>,
+    distance,
+  );
+  if (isRepeatWeaponUnlock(unlocked, weaponId)) {
+    cost = Math.floor(cost * 1.35);
+  }
+  return {
+    lane,
+    kind: 'weapon',
+    weaponId,
+    weaponHp: cost,
+  };
 }
 
 function isSurvivableSet(choices: GateChoiceDraft[], armySize: number): boolean {
@@ -106,10 +138,10 @@ function isSurvivableSet(choices: GateChoiceDraft[], armySize: number): boolean 
     if (!choice) {
       continue;
     }
-    if (choice.shootable) {
+    if (choice.kind === 'weapon' || choice.shootable) {
       return true;
     }
-    if (applyGateArithmetic(armySize, choice.operation, choice.value) > 0) {
+    if (applyGateArithmetic(armySize, choice.operation!, choice.value!) > 0) {
       return true;
     }
   }
@@ -117,17 +149,21 @@ function isSurvivableSet(choices: GateChoiceDraft[], armySize: number): boolean 
 }
 
 function isObviouslyUnfair(choices: GateChoiceDraft[], armySize: number): boolean {
-  const results = choices.map((choice) =>
-    applyGateArithmetic(armySize, choice.operation, choice.value),
+  const mathChoices = choices.filter((c) => c.kind === 'math' && !c.shootable);
+  if (mathChoices.length === 0) {
+    return false;
+  }
+  const results = mathChoices.map((choice) =>
+    applyGateArithmetic(armySize, choice.operation!, choice.value!),
   );
-  if (results.every((result) => result <= 0)) {
+  if (results.every((result) => result <= 0) && !choices.some((c) => c.kind === 'weapon' || c.shootable)) {
     return true;
   }
 
   const sorted = [...results].sort((a, b) => b - a);
   const best = sorted[0] ?? 0;
   const second = sorted[1] ?? best;
-  if (choices.length >= 2 && best > 0 && second > 0 && best >= second * 2.35 && best >= armySize + 8) {
+  if (mathChoices.length >= 2 && best > 0 && second > 0 && best >= second * 2.35 && best >= armySize + 8) {
     return true;
   }
   return false;
@@ -137,11 +173,11 @@ function rescueChoice(lane: LaneIndex, armySize: number, rng: () => number): Gat
   if (armySize <= 4 || rng() < 0.55) {
     const values = GATE_CONFIG.rescueAddValues;
     const value = values[Math.floor(rng() * values.length)] ?? 10;
-    return { lane, operation: 'add', value };
+    return { lane, kind: 'math', operation: 'add', value };
   }
   const values = GATE_CONFIG.rescueMultiplyValues;
   const value = values[Math.floor(rng() * values.length)] ?? 2;
-  return { lane, operation: 'multiply', value };
+  return { lane, kind: 'math', operation: 'multiply', value };
 }
 
 function rebalanceChoices(
@@ -150,11 +186,15 @@ function rebalanceChoices(
   rng: () => number,
 ): GateChoiceDraft[] {
   const next = choices.map((choice) => ({ ...choice }));
-  const rescueIndex = Math.floor(rng() * next.length);
-  next[rescueIndex] = rescueChoice(next[rescueIndex]!.lane, armySize, rng);
+  const rescueIndex = next.findIndex((c) => c.kind === 'math');
+  const index = rescueIndex >= 0 ? rescueIndex : 0;
+  next[index] = rescueChoice(next[index]!.lane, armySize, rng);
 
   if (!isSurvivableSet(next, armySize)) {
     for (let i = 0; i < next.length; i += 1) {
+      if (next[i]!.kind === 'weapon') {
+        continue;
+      }
       next[i] = rescueChoice(next[i]!.lane, armySize, rng);
     }
   }
@@ -166,10 +206,13 @@ function softenDominantChoice(
   armySize: number,
   rng: () => number,
 ): GateChoiceDraft[] {
-  const scored = choices.map((choice, index) => ({
+  const mathOnly = choices
+    .map((choice, index) => ({ choice, index }))
+    .filter((item) => item.choice.kind === 'math' && !item.choice.shootable);
+  const scored = mathOnly.map(({ choice, index }) => ({
     index,
     choice,
-    result: applyGateArithmetic(armySize, choice.operation, choice.value),
+    result: applyGateArithmetic(armySize, choice.operation!, choice.value!),
   }));
   scored.sort((a, b) => b.result - a.result);
   const top = scored[0];
@@ -182,14 +225,12 @@ function softenDominantChoice(
   }
 
   const next = choices.map((choice) => ({ ...choice }));
-  const replacement = draftChoice(top.choice.lane, rng);
+  const replacement = draftMathChoice(top.choice.lane, rng);
   next[top.index] = replacement;
-  if (
-    !isSurvivableSet(next, armySize) ||
-    isObviouslyUnfair(next, armySize)
-  ) {
+  if (!isSurvivableSet(next, armySize) || isObviouslyUnfair(next, armySize)) {
     next[top.index] = {
       lane: top.choice.lane,
+      kind: 'math',
       operation: 'add',
       value: pickValue('add', rng),
     };
@@ -197,14 +238,39 @@ function softenDominantChoice(
   return next;
 }
 
+function maybeInjectWeaponGate(
+  choices: GateChoiceDraft[],
+  unlocked: readonly WeaponId[],
+  distance: number,
+  rng: () => number,
+): GateChoiceDraft[] {
+  if (rng() >= GATE_CONFIG.weaponGate.choiceWeight) {
+    return choices;
+  }
+
+  const weaponId = pickWeaponForBarrelGate(unlocked, rng);
+  const next = choices.map((choice) => ({ ...choice }));
+  const replaceIndex = Math.floor(rng() * next.length);
+  next[replaceIndex] = draftWeaponChoice(next[replaceIndex]!.lane, weaponId, distance, unlocked);
+
+  if (!isSurvivableSet(next, 1)) {
+    return choices;
+  }
+  return next;
+}
+
 /** Build 2–3 lane gate choices that are survivable and not obviously unfair. */
 export function generateGateChoices(
   armySize: number,
+  unlockedWeapons: readonly WeaponId[],
+  distance: number,
   rng: () => number = Math.random,
 ): GateChoiceDraft[] {
   const laneCount: 2 | 3 = rng() < GATE_CONFIG.threeLaneChoiceWeight ? 3 : 2;
   const lanes = pickLanes(laneCount, rng);
-  let choices = lanes.map((lane) => draftChoice(lane, rng));
+  let choices = lanes.map((lane) => draftMathChoice(lane, rng));
+
+  choices = maybeInjectWeaponGate(choices, unlockedWeapons, distance, rng);
 
   if (!isSurvivableSet(choices, armySize)) {
     choices = rebalanceChoices(choices, armySize, rng);

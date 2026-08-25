@@ -10,12 +10,13 @@ import { GAME_CONFIG } from '../config/game';
 import { acquireEntity } from '../entities/combat';
 import type { Particle } from '../entities/combat';
 import type { Gate } from '../entities/gates';
-import { createEmptyGate, livingGateCount } from '../entities/gates';
+import { createEmptyGate, isWeaponGate, livingGateCount } from '../entities/gates';
 import { playerWorldZ } from '../math/camera';
 import { asphaltLaneBounds, asphaltLaneCenterX } from '../math/roadBounds';
 import type { GameState, LaneIndex } from '../types';
 import { generateGateChoices } from './GateGenerator';
 import { applyHitToShootableGate, syncShootableGateDerived } from './gateEvolution';
+import { equipWeapon, registerWeaponUnlock } from './weaponGate';
 import { COMBAT_CONFIG } from '../config/combat';
 
 function nextGateId(state: GameState): number {
@@ -45,11 +46,18 @@ function initializeGateFromChoice(
 ): void {
   gate.lane = choice.lane;
   gate.x = asphaltLaneCenterX(choice.lane, GAME_CONFIG.camera);
-  gate.operation = choice.operation;
-  gate.value = choice.value;
+  gate.kind = choice.kind;
+  gate.operation = choice.operation ?? 'add';
+  gate.value = choice.value ?? 0;
   gate.shootable = choice.shootable === true;
   gate.signedValue = choice.signedValue ?? 0;
   gate.damageBuffer = 0;
+  gate.weaponId = choice.weaponId ?? null;
+  gate.weaponHp = choice.weaponHp ?? 0;
+  gate.weaponMaxHp = choice.weaponHp ?? 0;
+  gate.weaponReady = false;
+  gate.explodeT = 0;
+  gate.weaponAbsorbT = 0;
   gate.valueFlash = 0;
   gate.evolvePulse = 0;
   gate.evolvePulseKind = 'none';
@@ -69,7 +77,7 @@ function spawnGateGroup(
     return 0;
   }
 
-  const choices = generateGateChoices(state.armySize, rng);
+  const choices = generateGateChoices(state.armySize, state.unlockedWeapons, state.distance, rng);
   const groupId = nextGroupId(state);
   let spawned = 0;
 
@@ -163,6 +171,34 @@ function spawnGateActivationParticles(
   }
 }
 
+function spawnBarrelExplosion(state: GameState, x: number, z: number): void {
+  for (let i = 0; i < 22; i += 1) {
+    const particle = acquireEntity(state.particles, COMBAT_CONFIG.maxParticles, () => ({
+      active: false,
+      x: 0,
+      z: 0,
+      vx: 0,
+      vz: 0,
+      life: 0,
+      maxLife: COMBAT_CONFIG.particleLife,
+      kind: 'default' as const,
+    } satisfies Particle));
+    if (!particle) {
+      return;
+    }
+    const angle = (i / 22) * Math.PI * 2 + (i % 3) * 0.2;
+    const speed = 6 + (i % 5) * 2.2;
+    particle.active = true;
+    particle.kind = i % 3 === 0 ? 'gatePositive' : 'default';
+    particle.x = x + Math.cos(angle) * 0.04;
+    particle.z = z + Math.sin(angle) * 0.03;
+    particle.vx = Math.cos(angle) * speed;
+    particle.vz = Math.sin(angle) * (speed * 0.55);
+    particle.life = COMBAT_CONFIG.particleLife * (1.2 + (i % 4) * 0.15);
+    particle.maxLife = particle.life;
+  }
+}
+
 function triggerEvolveFeedback(state: GameState, gate: Gate): void {
   state.gatePulseX = gate.x;
   state.gatePulseZ = gate.z;
@@ -179,13 +215,45 @@ function triggerEvolveFeedback(state: GameState, gate: Gate): void {
   }
 }
 
+function completeWeaponUnlock(state: GameState, gate: Gate): void {
+  if (!gate.weaponId) {
+    return;
+  }
+  registerWeaponUnlock(state, gate.weaponId);
+  equipWeapon(state, gate.weaponId);
+  gate.weaponReady = true;
+  gate.weaponHp = 0;
+  gate.explodeT = GATE_CONFIG.weaponGate.explodeDuration;
+  state.gatePulse = GATE_CONFIG.weaponGate.unlockPulseDuration;
+  state.gatePulseX = gate.x;
+  state.gatePulseZ = gate.z;
+  state.gatePulsePositive = true;
+  spawnBarrelExplosion(state, gate.x, gate.z);
+}
+
 export function applyProjectileGateHit(
   state: GameState,
   gateIndex: number,
   _damage: number,
 ): void {
   const gate = state.gates[gateIndex];
-  if (!gate?.active || !gate.shootable || gate.activated) {
+  if (!gate?.active || gate.activated) {
+    return;
+  }
+
+  if (isWeaponGate(gate)) {
+    if (gate.weaponReady || gate.weaponHp <= 0) {
+      return;
+    }
+    gate.weaponHp = Math.max(0, gate.weaponHp - 1);
+    gate.valueFlash = GATE_CONFIG.weaponGate.hitFlashDuration;
+    if (gate.weaponHp <= 0) {
+      completeWeaponUnlock(state, gate);
+    }
+    return;
+  }
+
+  if (!gate.shootable) {
     return;
   }
 
@@ -215,10 +283,31 @@ function deactivateGateGroup(state: GameState, groupId: number, exceptGateId: nu
   }
 }
 
-function activateGate(state: GameState, gate: Gate): void {
-  if (gate.activated || state.status !== 'running') {
+function activateWeaponGate(state: GameState, gate: Gate): void {
+  if (gate.weaponHp > 0 && !gate.weaponReady) {
+    gate.activated = true;
+    gate.fadeT = 0;
+    state.gatePulse = GATE_CONFIG.activationFeedbackDuration;
+    state.gatePulseX = gate.x;
+    state.gatePulseZ = gate.z;
+    state.gatePulsePositive = false;
+    spawnGateActivationParticles(state, gate.x, gate.z, false);
+    removeSoldiers(state, state.armySize, gate.x, gate.z);
+    checkArmyGameOver(state);
+    deactivateGateGroup(state, gate.groupId, gate.id);
     return;
   }
+
+  if (gate.weaponId && !gate.weaponReady) {
+    completeWeaponUnlock(state, gate);
+  }
+
+  gate.activated = true;
+  gate.fadeT = 0;
+  deactivateGateGroup(state, gate.groupId, gate.id);
+}
+
+function activateMathGate(state: GameState, gate: Gate): void {
   if (gate.shootable) {
     syncShootableGateDerived(gate);
   }
@@ -252,6 +341,19 @@ function activateGate(state: GameState, gate: Gate): void {
   deactivateGateGroup(state, gate.groupId, gate.id);
 }
 
+function activateGate(state: GameState, gate: Gate): void {
+  if (gate.activated || state.status !== 'running') {
+    return;
+  }
+
+  if (isWeaponGate(gate)) {
+    activateWeaponGate(state, gate);
+    return;
+  }
+
+  activateMathGate(state, gate);
+}
+
 function resolveGateCrossings(state: GameState): void {
   const playerZ = playerWorldZ(state.distance, GAME_CONFIG.camera);
   const frontZ = armyFrontWorldZ(playerZ, state.formationSlots);
@@ -281,6 +383,9 @@ function cullPassedGates(state: GameState): void {
     if (!gate?.active) {
       continue;
     }
+    if (gate.explodeT > 0 || gate.weaponAbsorbT > 0) {
+      continue;
+    }
     if (gate.z < cullZ && gate.activated) {
       gate.active = false;
       continue;
@@ -304,13 +409,30 @@ export function updateGateVisuals(state: GameState, dt: number): void {
     if (gate.valueFlash > 0) {
       gate.valueFlash = Math.max(0, gate.valueFlash - dt);
     }
+    if (gate.explodeT > 0) {
+      const wasExploding = gate.explodeT > 0;
+      gate.explodeT = Math.max(0, gate.explodeT - dt);
+      if (wasExploding && gate.explodeT <= 0 && gate.weaponReady && gate.weaponAbsorbT <= 0) {
+        gate.weaponAbsorbT = GATE_CONFIG.weaponGate.absorbDuration;
+      }
+    }
+    if (gate.weaponAbsorbT > 0) {
+      gate.weaponAbsorbT = Math.max(0, gate.weaponAbsorbT - dt);
+      if (gate.weaponAbsorbT <= 0) {
+        gate.active = false;
+      }
+      continue;
+    }
     if (gate.evolvePulse > 0) {
       gate.evolvePulse = Math.max(0, gate.evolvePulse - dt);
       if (gate.evolvePulse <= 0) {
         gate.evolvePulseKind = 'none';
       }
     }
-    if (!gate.activated) {
+    if (!gate.activated && !gate.weaponReady) {
+      continue;
+    }
+    if (gate.weaponReady && !gate.activated) {
       continue;
     }
     gate.fadeT += dt;
@@ -338,3 +460,6 @@ export function updateGates(
 export function applyGateToArmy(state: GameState, gate: Gate): void {
   activateGate(state, gate);
 }
+
+/** Exported for dev controls. */
+export { equipWeapon } from './weaponGate';

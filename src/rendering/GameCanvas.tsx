@@ -8,6 +8,7 @@ import {
   updateFrameStats,
 } from '../game/engine/GameLoop';
 import type { GameSession } from '../game/engine/GameSession';
+import { getWeapon } from '../game/config/weapons';
 import { GAME_CONFIG } from '../game/config/game';
 import type { HudSnapshot } from '../game/types';
 import { createRenderResources } from './paints';
@@ -66,6 +67,8 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
         onHudRef.current({
           distance: session.state.distance,
           armySize: session.state.armySize,
+          weaponId: session.state.weaponId,
+          weaponName: getWeapon(session.state.weaponId).name,
           fps: stats.fps,
           elapsed: session.state.elapsed,
           hasChangedLane: session.state.hasChangedLane,
