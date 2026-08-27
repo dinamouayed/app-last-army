@@ -1,3 +1,4 @@
+import { weaponUnlockCostMultiplier } from './difficulty';
 import type { WeaponId } from './weapons';
 
 export const WEAPON_UNLOCK_CONFIG = {
@@ -30,6 +31,5 @@ export function scaledUnlockCost(
   distance: number,
 ): number {
   const base = WEAPON_UNLOCK_CONFIG.unlockCosts[weaponId];
-  const scale = 1 + (distance / 100) * WEAPON_UNLOCK_CONFIG.costScalePer100m;
-  return Math.max(1, Math.floor(base * scale));
+  return Math.max(1, Math.floor(base * weaponUnlockCostMultiplier(distance)));
 }

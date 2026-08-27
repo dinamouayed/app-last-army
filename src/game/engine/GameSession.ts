@@ -8,6 +8,7 @@ import {
 } from '../math/lanes';
 import { updateCombat } from '../systems/CombatSystem';
 import { spawnBossForDev } from '../systems/BossSystem';
+import { resyncWorldAfterDistanceJump } from '../systems/WorldGenerator';
 import { updateRunner } from '../systems/RunnerSystem';
 import type { GameState, InputState } from '../types';
 
@@ -60,5 +61,13 @@ export class GameSession {
 
   devSpawnBoss(): void {
     spawnBossForDev(this.state);
+  }
+
+  devAdvanceDistance(amount: number): void {
+    if (this.state.status !== 'running') {
+      return;
+    }
+    this.state.distance += Math.max(0, amount);
+    resyncWorldAfterDistanceJump(this.state);
   }
 }

@@ -42,11 +42,11 @@ Status values:
 
 # Current Status
 
-**Current phase:** Phase 7 — Boss System
+**Current phase:** Phase 8 — Procedural World & Difficulty
 
 **Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
 
-Phases 1, 1.5, 2, 3, 4, 5 and 6 are validated. Phase 7 boss encounters are implemented and waiting for manual validation.
+Phases 1, 1.5, 2, 3, 4, 5 and 6 are validated. Phase 7 boss encounters are implemented and waiting for manual validation. Phase 8 procedural world generation and difficulty scaling are implemented and waiting for manual validation.
 
 ---
 
@@ -378,7 +378,7 @@ A boss encounter should allow situations where the player survives with only a f
 
 # Phase 8 — Procedural World & Difficulty
 
-**Status:** ⬜ NOT STARTED
+**Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
 
 ## Objective
 
@@ -386,37 +386,37 @@ Turn the existing mechanics into a genuinely endless game.
 
 ## Procedural Segments
 
-* [ ] GateChoice
-* [ ] EnemyWave
-* [ ] ShootableGate
-* [ ] WeaponUnlock
-* [ ] MixedEncounter
-* [ ] RecoverySection
-* [ ] BossApproach
+* [x] GateChoice
+* [x] EnemyWave
+* [x] ShootableGate
+* [x] WeaponUnlock
+* [x] MixedEncounter
+* [x] RecoverySection
+* [x] BossApproach
 
 ## Generation
 
-* [ ] Weighted segment selection
-* [ ] Continuous world generation
-* [ ] Segment recycling
-* [ ] Game-state-aware generation where appropriate
-* [ ] Fairness constraints
-* [ ] Avoid unavoidable procedural deaths
-* [ ] Seed architecture for reproducible runs/debugging
+* [x] Weighted segment selection
+* [x] Continuous world generation
+* [x] Segment recycling
+* [x] Game-state-aware generation where appropriate
+* [x] Fairness constraints
+* [x] Avoid unavoidable procedural deaths
+* [x] Seed architecture for reproducible runs/debugging
 
 ## Difficulty
 
 Scale with distance:
 
-* [ ] Enemy HP
-* [ ] Enemy count
-* [ ] Enemy speed
-* [ ] Spawn frequency
-* [ ] Boss HP
-* [ ] Boss damage
-* [ ] Weapon unlock costs
-* [ ] Gate values
-* [ ] Encounter complexity
+* [x] Enemy HP
+* [x] Enemy count
+* [x] Enemy speed
+* [x] Spawn frequency
+* [x] Boss HP
+* [x] Boss damage
+* [x] Weapon unlock costs
+* [x] Gate values
+* [x] Encounter complexity
 
 Difficulty curves must remain centralized and configurable.
 
@@ -563,11 +563,11 @@ The first complete MVP is reached when the player can:
 * [ ] Choose mathematical gates
 * [ ] Improve shootable gates
 * [x] Unlock stronger weapons
-* [ ] Encounter increasingly difficult enemies
+* [x] Encounter increasingly difficult enemies
 * [x] Fight bosses
-* [ ] Survive bosses and continue the same run
-* [ ] Experience continuously increasing difficulty
-* [ ] Play without finite/manual levels
+* [x] Survive bosses and continue the same run
+* [x] Experience continuously increasing difficulty
+* [x] Play without finite/manual levels
 * [ ] Eventually lose the entire army
 * [ ] See final distance
 * [ ] Save a best distance
@@ -583,8 +583,8 @@ The intended core loop remains:
 
 Manually validate:
 
-**Phase 7 — Boss System**
+**Phase 8 — Procedural World & Difficulty**
 
 Then, and only then:
 
-**Phase 8 — Procedural World & Difficulty**
+**Phase 9 — Game Feel & Polish**

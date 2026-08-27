@@ -1,4 +1,4 @@
-import { SkiaPictureView } from '@shopify/react-native-skia';
+import { SkiaPictureView } from './skia';
 import { useEffect, useRef } from 'react';
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 

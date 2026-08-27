@@ -1,8 +1,7 @@
-import { SkiaPictureView, useImage } from '@shopify/react-native-skia';
+import { SkiaPictureView, useImage } from './skia';
 import { useEffect, useRef, type RefObject } from 'react';
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 
-import { BOSS_ATLAS } from '../game/assets/bossAsset';
 import {
   createFrameStats,
   startGameLoop,
@@ -10,8 +9,10 @@ import {
 } from '../game/engine/GameLoop';
 import type { GameSession } from '../game/engine/GameSession';
 import { getWeapon } from '../game/config/weapons';
+import { difficultyFactor } from '../game/config/difficulty';
 import { GAME_CONFIG } from '../game/config/game';
 import type { HudSnapshot } from '../game/types';
+import { currentSegmentKind } from '../game/world/worldState';
 import { createRenderResources } from './paints';
 import { recordFrame } from './recordFrame';
 import {
@@ -20,6 +21,8 @@ import {
   disposeSkPictureHolder,
   publishSkiaPicture,
 } from './skiaPicture';
+
+const BOSS_ATLAS_SOURCE = require('../../assets/boss/boss-atlas.png');
 
 interface GameCanvasProps {
   sessionRef: RefObject<GameSession | null>;
@@ -32,7 +35,9 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
   const sizeRef = useRef({ width: 0, height: 0 });
   const onHudRef = useRef(onHud);
   const onGameOverRef = useRef(onGameOver);
-  const bossAtlas = useImage(BOSS_ATLAS);
+  const bossAtlas = useImage(BOSS_ATLAS_SOURCE);
+  const bossAtlasRef = useRef(bossAtlas);
+  bossAtlasRef.current = bossAtlas;
   onHudRef.current = onHud;
   onGameOverRef.current = onGameOver;
 
@@ -56,7 +61,7 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
         return;
       }
 
-      resources.bossAtlas = bossAtlas ?? null;
+      resources.bossAtlas = bossAtlasRef.current ?? null;
 
       if (session.state.status === 'running') {
         session.update(dt);
@@ -81,6 +86,10 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
           fps: stats.fps,
           elapsed: session.state.elapsed,
           hasChangedLane: session.state.hasChangedLane,
+          difficulty: difficultyFactor(session.state.distance),
+          nextBossDistance: session.state.nextBossDistance,
+          runSeed: session.state.runSeed,
+          segmentKind: currentSegmentKind(session.state),
         });
       }
 
@@ -95,7 +104,7 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
       disposeSkPictureHolder(pictureHolder);
       disposeRenderResources(resources);
     };
-  }, [bossAtlas, sessionRef]);
+  }, [sessionRef]);
 
   return (
     <View style={styles.canvas} onLayout={handleLayout}>

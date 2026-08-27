@@ -1,4 +1,6 @@
-import { Skia, matchFont, type SkCanvas } from '@shopify/react-native-skia';
+import type { SkCanvas } from '@shopify/react-native-skia';
+
+import { Skia, matchFont } from './skia';
 
 import { pickBossSprite } from '../game/boss/bossAnimation';
 import { BOSS_CELL } from '../game/assets/bossAsset';
@@ -124,27 +126,82 @@ function drawFallbackBossBody(
   screenScale: number,
   alpha: number,
 ): { headX: number; headY: number; width: number; height: number } {
-  const width = 72 * screenScale;
-  const height = 96 * screenScale;
+  const width = 78 * screenScale;
+  const height = 108 * screenScale;
   const x = feetX - width * 0.5;
   const y = feetY - height;
+  const paints = resources.paints;
 
-  resources.paints.bossPants.setAlphaf(alpha);
-  canvas.drawRRect(
-    Skia.RRectXY(Skia.XYWHRect(x + width * 0.12, y + height * 0.18, width * 0.76, height * 0.72), 6, 6),
-    resources.paints.bossPants,
+  const setAlpha = (paint: typeof paints.bossSkin, value: number) => {
+    paint.setAlphaf(value);
+  };
+
+  setAlpha(paints.bossShadow, alpha * 0.35);
+  canvas.drawOval(
+    { x: feetX - width * 0.32, y: feetY - height * 0.04, width: width * 0.64, height: height * 0.08 },
+    paints.bossShadow,
   );
-  resources.paints.bossMuscle.setAlphaf(alpha);
+
+  setAlpha(paints.bossPantsDark, alpha);
   canvas.drawRRect(
-    Skia.RRectXY(Skia.XYWHRect(x + width * 0.22, y + height * 0.04, width * 0.56, height * 0.22), 4, 4),
-    resources.paints.bossMuscle,
+    Skia.RRectXY(Skia.XYWHRect(x + width * 0.22, y + height * 0.62, width * 0.2, height * 0.32), 3, 3),
+    paints.bossPantsDark,
   );
-  resources.paints.bossPants.setAlphaf(1);
-  resources.paints.bossMuscle.setAlphaf(1);
+  canvas.drawRRect(
+    Skia.RRectXY(Skia.XYWHRect(x + width * 0.58, y + height * 0.62, width * 0.2, height * 0.32), 3, 3),
+    paints.bossPantsDark,
+  );
+
+  setAlpha(paints.bossPants, alpha);
+  canvas.drawRRect(
+    Skia.RRectXY(Skia.XYWHRect(x + width * 0.2, y + height * 0.5, width * 0.6, height * 0.2), 8, 8),
+    paints.bossPants,
+  );
+
+  setAlpha(paints.bossSkin, alpha);
+  canvas.drawRRect(
+    Skia.RRectXY(Skia.XYWHRect(x + width * 0.18, y + height * 0.22, width * 0.64, height * 0.34), 10, 10),
+    paints.bossSkin,
+  );
+
+  setAlpha(paints.bossMuscle, alpha);
+  canvas.drawRRect(
+    Skia.RRectXY(Skia.XYWHRect(x + width * 0.02, y + height * 0.28, width * 0.2, height * 0.28), 8, 8),
+    paints.bossMuscle,
+  );
+  canvas.drawRRect(
+    Skia.RRectXY(Skia.XYWHRect(x + width * 0.78, y + height * 0.28, width * 0.2, height * 0.28), 8, 8),
+    paints.bossMuscle,
+  );
+
+  setAlpha(paints.bossSkinDark, alpha);
+  canvas.drawOval(
+    { x: feetX - width * 0.22, y: y + height * 0.02, width: width * 0.44, height: height * 0.24 },
+    paints.bossSkinDark,
+  );
+  setAlpha(paints.bossSkin, alpha);
+  canvas.drawOval(
+    { x: feetX - width * 0.2, y: y, width: width * 0.4, height: height * 0.22 },
+    paints.bossSkin,
+  );
+
+  setAlpha(paints.bossWound, alpha);
+  canvas.drawOval(
+    { x: feetX - width * 0.08, y: y + height * 0.12, width: width * 0.16, height: height * 0.07 },
+    paints.bossWound,
+  );
+
+  setAlpha(paints.bossShadow, 1);
+  setAlpha(paints.bossPantsDark, 1);
+  setAlpha(paints.bossPants, 1);
+  setAlpha(paints.bossSkin, 1);
+  setAlpha(paints.bossMuscle, 1);
+  setAlpha(paints.bossSkinDark, 1);
+  setAlpha(paints.bossWound, 1);
 
   return {
     headX: feetX,
-    headY: y + 10 * screenScale,
+    headY: y + 8 * screenScale,
     width,
     height,
   };

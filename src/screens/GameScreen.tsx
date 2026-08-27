@@ -25,6 +25,10 @@ export function GameScreen({ onGameOver, onExit }: GameScreenProps) {
     fps: 60,
     elapsed: 0,
     hasChangedLane: false,
+    difficulty: 1,
+    nextBossDistance: 0,
+    runSeed: 0,
+    segmentKind: 'runway',
   });
 
   const panResponder = useMemo(
@@ -68,7 +72,10 @@ export function GameScreen({ onGameOver, onExit }: GameScreenProps) {
       <ExitButton onPress={onExit} />
       <DevArmyControls session={sessionRef.current} />
       {__DEV__ ? (
-        <Text style={styles.fps}>{Math.round(hud.fps)} FPS</Text>
+        <Text style={styles.debug}>
+          {Math.round(hud.fps)} FPS  d{hud.difficulty.toFixed(2)}  {hud.segmentKind}
+          {'\n'}boss {Math.max(0, Math.round(hud.nextBossDistance - hud.distance))}m  seed {hud.runSeed}
+        </Text>
       ) : null}
     </View>
   );
@@ -82,12 +89,13 @@ const styles = StyleSheet.create({
   canvas: {
     flex: 1,
   },
-  fps: {
+  debug: {
     position: 'absolute',
     left: 16,
     bottom: 28,
     color: 'rgba(255,255,255,0.7)',
     fontSize: 11,
     fontWeight: '700',
+    lineHeight: 16,
   },
 });

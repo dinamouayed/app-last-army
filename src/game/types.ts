@@ -1,6 +1,7 @@
 import type { CombatState } from './entities/combat';
 import type { BossRuntimeState } from './entities/boss';
 import type { GateRuntimeState } from './entities/gates';
+import type { WorldRuntimeState } from './world/worldState';
 import type { FormationSlot, DyingSoldierVisual } from './army/formation';
 import type { WeaponId } from './config/weapons';
 
@@ -8,7 +9,7 @@ export type LaneIndex = 0 | 1 | 2;
 
 export type GameStatus = 'running' | 'paused' | 'gameover';
 
-export interface GameState extends CombatState, GateRuntimeState, BossRuntimeState {
+export interface GameState extends CombatState, GateRuntimeState, BossRuntimeState, WorldRuntimeState {
   status: GameStatus;
   elapsed: number;
   distance: number;
@@ -39,6 +40,10 @@ export interface HudSnapshot {
   fps: number;
   elapsed: number;
   hasChangedLane: boolean;
+  difficulty: number;
+  nextBossDistance: number;
+  runSeed: number;
+  segmentKind: string;
 }
 
 export interface CameraConfig {

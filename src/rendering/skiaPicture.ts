@@ -1,9 +1,12 @@
 import type { SkPicture } from '@shopify/react-native-skia';
 
-import type { SkiaPictureView } from '@shopify/react-native-skia';
-
 import type { RenderResources } from './paints';
 import { getSkiaViewApi } from './skiaApi';
+
+interface SkiaPictureViewHandle {
+  nativeId: number;
+  redraw: () => void;
+}
 
 export interface SkPictureHolder {
   current: SkPicture | null;
@@ -14,7 +17,7 @@ export function createSkPictureHolder(): SkPictureHolder {
 }
 
 export function publishSkiaPicture(
-  view: SkiaPictureView | null,
+  view: SkiaPictureViewHandle | null,
   picture: SkPicture,
   holder: SkPictureHolder,
 ): void {

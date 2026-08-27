@@ -12,6 +12,7 @@ import {
 import { COMBAT_CONFIG } from '../config/combat';
 import { ENEMIES, getEnemyConfig } from '../config/enemies';
 import { GAME_CONFIG } from '../config/game';
+import { scaledEnemyApproachSpeed, scaledEnemyEngagingSpeed, scaledEnemyHp } from '../config/difficulty';
 import { acquireEntity, livingEnemyCount } from '../entities/combat';
 import type { Enemy, Particle } from '../entities/combat';
 import { playerWorldZ } from '../math/camera';
@@ -90,6 +91,7 @@ export function spawnBasicEnemyAt(
   worldZ: number,
 ): Enemy | null {
   const config = ENEMIES.basic;
+  const hp = scaledEnemyHp(state.distance, config.maxHp);
   const enemy = acquireEntity(state.enemies, COMBAT_CONFIG.maxEnemies, () => ({
     id: 0,
     active: false,
@@ -105,6 +107,8 @@ export function spawnBasicEnemyAt(
     dying: false,
     behavior: 'approaching' as const,
     attackTimer: 0,
+    approachSpeed: config.approachSpeed,
+    engagingForwardSpeed: config.engagingForwardSpeed,
   }));
   if (!enemy) {
     return null;
@@ -116,14 +120,16 @@ export function spawnBasicEnemyAt(
   enemy.x = clampWorldXToRoad(worldX, GAME_CONFIG.camera, enemyRoadMargin());
   enemy.lane = deriveLaneFromX(enemy.x);
   enemy.z = worldZ;
-  enemy.hp = config.maxHp;
-  enemy.maxHp = config.maxHp;
+  enemy.hp = hp;
+  enemy.maxHp = hp;
   enemy.radius = config.collisionRadius;
   enemy.hitFlash = 0;
   enemy.deathT = 0;
   enemy.dying = false;
   enemy.behavior = 'approaching';
   enemy.attackTimer = config.attackInterval;
+  enemy.approachSpeed = scaledEnemyApproachSpeed(state.distance, config.approachSpeed);
+  enemy.engagingForwardSpeed = scaledEnemyEngagingSpeed(state.distance, config.engagingForwardSpeed);
   return enemy;
 }
 
@@ -229,7 +235,7 @@ function updateApproachingEnemy(
     return;
   }
 
-  const nextZ = enemy.z - config.approachSpeed * dt;
+  const nextZ = enemy.z - (enemy.approachSpeed || config.approachSpeed) * dt;
   if (
     state.armySize > 0 &&
     enemyWouldEnterFootprint(enemy.x, enemy.z, nextZ, enemy.radius, footprint)
@@ -257,7 +263,7 @@ function updateEngagingEnemy(
   const target = closestPointOnArmyFootprint(enemy.x, enemy.z, footprint);
   applyLateralSteer(enemy, target.x, dt, config, 1);
 
-  const nextZ = enemy.z - config.engagingForwardSpeed * dt;
+  const nextZ = enemy.z - (enemy.engagingForwardSpeed || config.engagingForwardSpeed) * dt;
   if (enemyWouldEnterFootprint(enemy.x, enemy.z, nextZ, enemy.radius, footprint)) {
     beginAttacking(enemy, footprint, config);
     return;

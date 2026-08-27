@@ -15,15 +15,13 @@ import { createEmptyGate, isWeaponGate, livingGateCount } from '../entities/gate
 import { playerWorldZ } from '../math/camera';
 import { asphaltLaneBounds, asphaltLaneCenterX } from '../math/roadBounds';
 import type { GameState, LaneIndex } from '../types';
-import { generateGateChoices } from './GateGenerator';
+import { generateGateChoices, type GateGenerationMode } from './GateGenerator';
 import { applyHitToShootableGate, syncShootableGateDerived } from './gateEvolution';
 import {
   equipWeapon,
   failedWeaponUnlockSoldierLoss,
   registerWeaponUnlock,
 } from './weaponGate';
-import { BOSS_CONFIG } from '../config/bosses';
-import { isBossPresent } from '../entities/boss';
 
 function nextGateId(state: GameState): number {
   const id = state.nextEntityId;
@@ -35,11 +33,6 @@ function nextGroupId(state: GameState): number {
   const id = state.nextGroupId;
   state.nextGroupId += 1;
   return id;
-}
-
-function pickGateSpacing(rng: () => number): number {
-  const span = GATE_CONFIG.maxGateSpacing - GATE_CONFIG.minGateSpacing;
-  return GATE_CONFIG.minGateSpacing + rng() * span;
 }
 
 function minGateSpawnZ(armyFrontZ: number): number {
@@ -78,12 +71,19 @@ function spawnGateGroup(
   state: GameState,
   baseZ: number,
   rng: () => number,
+  mode: GateGenerationMode = 'standard',
 ): number {
   if (livingGateCount(state.gates) >= GATE_CONFIG.maxGates) {
     return 0;
   }
 
-  const choices = generateGateChoices(state.armySize, state.unlockedWeapons, state.distance, rng);
+  const choices = generateGateChoices(
+    state.armySize,
+    state.unlockedWeapons,
+    state.distance,
+    rng,
+    mode,
+  );
   const groupId = nextGroupId(state);
   let spawned = 0;
 
@@ -108,6 +108,18 @@ function spawnGateGroup(
   return spawned;
 }
 
+export function spawnGateChoice(
+  state: GameState,
+  rng: () => number = Math.random,
+  mode: GateGenerationMode = 'standard',
+): number {
+  const playerZ = playerWorldZ(state.distance, GAME_CONFIG.camera);
+  const armyFrontZ = armyFrontWorldZ(playerZ, state.formationSlots);
+  const minZ = minGateSpawnZ(armyFrontZ);
+  const spawnZ = Math.max(minZ, armyFrontZ + GATE_CONFIG.spawnAhead);
+  return spawnGateGroup(state, spawnZ, rng, mode);
+}
+
 export function scheduleFirstGate(state: GameState): void {
   state.nextGateDistance = GATE_CONFIG.firstGateDistance;
 }
@@ -126,52 +138,6 @@ export function clearGatesNearWorldZ(state: GameState, z: number, clearance: num
     }
   }
   return cleared;
-}
-
-function deferGateSpawnForUpcomingBoss(state: GameState, minSeparation: number): void {
-  if (state.boss.active || state.nextBossDistance <= 0) {
-    return;
-  }
-  if (Math.abs(state.nextGateDistance - state.nextBossDistance) < minSeparation) {
-    state.nextGateDistance = state.nextBossDistance + minSeparation;
-  }
-}
-
-export function updateGateSpawn(
-  state: GameState,
-  rng: () => number = Math.random,
-): void {
-  if (state.status !== 'running') {
-    return;
-  }
-  if (state.nextGateDistance <= 0) {
-    scheduleFirstGate(state);
-  }
-  if (state.distance < state.nextGateDistance) {
-    return;
-  }
-
-  deferGateSpawnForUpcomingBoss(state, BOSS_CONFIG.minGateDistanceSeparation);
-
-  if (isBossPresent(state.boss)) {
-    return;
-  }
-
-  if (state.distance < state.nextGateDistance) {
-    return;
-  }
-
-  const playerZ = playerWorldZ(state.distance, GAME_CONFIG.camera);
-  const armyFrontZ = armyFrontWorldZ(playerZ, state.formationSlots);
-  const minZ = minGateSpawnZ(armyFrontZ);
-  const spawnZ = Math.max(minZ, armyFrontZ + GATE_CONFIG.spawnAhead);
-  const spawned = spawnGateGroup(state, spawnZ, rng);
-
-  if (spawned > 0) {
-    state.nextGateDistance = state.distance + pickGateSpacing(rng);
-  } else {
-    state.nextGateDistance = state.distance + GATE_CONFIG.spawnRetryDelay * GAME_CONFIG.forwardSpeed;
-  }
 }
 
 function armyInGateLane(armyX: number, lane: LaneIndex): boolean {
@@ -490,12 +456,11 @@ export function updateGateVisuals(state: GameState, dt: number): void {
 export function updateGates(
   state: GameState,
   dt: number,
-  rng: () => number = Math.random,
+  _rng: () => number = Math.random,
 ): void {
   if (state.status !== 'running') {
     return;
   }
-  updateGateSpawn(state, rng);
   resolveGateCrossings(state);
   cullPassedGates(state);
   updateGateVisuals(state, dt);

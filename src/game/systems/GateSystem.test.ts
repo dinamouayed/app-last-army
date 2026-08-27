@@ -10,7 +10,7 @@ import { playerWorldZ } from '../math/camera';
 import { asphaltLaneCenterX } from '../math/roadBounds';
 import { laneIndexToX } from '../math/lanes';
 import type { Gate } from '../entities/gates';
-import { applyGateToArmy, applyProjectileGateHit, updateGates } from './GateSystem';
+import { applyGateToArmy, applyProjectileGateHit, spawnGateChoice, updateGates } from './GateSystem';
 
 function makeGate(
   lane: 0 | 1 | 2,
@@ -132,7 +132,7 @@ describe('gate activation', () => {
     state.distance = GATE_CONFIG.firstGateDistance + 1;
     state.nextGateDistance = GATE_CONFIG.firstGateDistance;
 
-    updateGates(state, 1 / 60, () => 0.12);
+    spawnGateChoice(state, () => 0.12);
 
     expect(livingGateCount(state.gates)).toBeGreaterThanOrEqual(2);
     const playerZ = playerWorldZ(state.distance, GAME_CONFIG.camera);

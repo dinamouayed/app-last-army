@@ -1,4 +1,6 @@
-import { Skia, type SkPicture } from '@shopify/react-native-skia';
+import type { SkPicture } from '@shopify/react-native-skia';
+
+import { Skia } from './skia';
 
 import { GAME_CONFIG } from '../game/config/game';
 import { PALETTE } from '../game/config/palette';

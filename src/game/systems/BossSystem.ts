@@ -191,6 +191,7 @@ export function killBoss(state: GameState, boss: Boss): void {
   state.gatePulseX = boss.x;
   state.gatePulseZ = boss.z;
   state.gatePulsePositive = true;
+  state.pendingRecovery = true;
 }
 
 export function applyProjectileBossHit(state: GameState, damage: number): void {

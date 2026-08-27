@@ -31,6 +31,8 @@ export interface Enemy {
   dying: boolean;
   behavior: EnemyBehaviorState;
   attackTimer: number;
+  approachSpeed: number;
+  engagingForwardSpeed: number;
 }
 
 export interface Particle {

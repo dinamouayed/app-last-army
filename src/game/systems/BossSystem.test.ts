@@ -8,9 +8,10 @@ import { createEmptyGate } from '../entities/gates';
 import { playerWorldZ } from '../math/camera';
 import { applyProjectileBossHit, killBoss, scheduleFirstBoss, spawnBoss, spawnBossForDev, updateBoss } from './BossSystem';
 import { resolveProjectileCollisions } from './CollisionSystem';
-import { clearGatesNearWorldZ, updateGates } from './GateSystem';
+import { clearGatesNearWorldZ } from './GateSystem';
 import { updateSpawn } from './SpawnSystem';
 import { fireCurrentWeapon } from './ShootingSystem';
+import { updateWorld } from './WorldGenerator';
 
 describe('boss spawning', () => {
   it('schedules the first boss at the configured distance', () => {
@@ -92,18 +93,23 @@ describe('boss and gate separation', () => {
     const state = createGameState();
     spawnBoss(state);
     state.distance = state.nextGateDistance + 100;
-    state.nextGateDistance = state.distance - 1;
-    updateGates(state, 0);
+    updateWorld(state, 0);
     expect(state.gates.every((gate) => !gate?.active)).toBe(true);
   });
 
-  it('defers gate spawn when the next gate would coincide with an upcoming boss', () => {
-    const state = createGameState();
-    state.nextBossDistance = 400;
-    state.nextGateDistance = 395;
-    state.distance = 395;
-    updateGates(state, 0);
-    expect(state.nextGateDistance).toBe(400 + BOSS_CONFIG.minGateDistanceSeparation);
+  it('keeps upcoming gate encounters away from the scheduled boss', () => {
+    const state = createGameState(7);
+    const approach = state.segments.find((segment) => segment.active && segment.kind === 'BossApproach');
+    expect(approach).toBeDefined();
+    expect(approach!.startDistance + approach!.length).toBeCloseTo(state.nextBossDistance, 0);
+    const overlappingGate = state.segments.some(
+      (segment) =>
+        segment.active &&
+        segment.kind !== 'BossApproach' &&
+        segment.startDistance >= approach!.startDistance &&
+        segment.startDistance < state.nextBossDistance,
+    );
+    expect(overlappingGate).toBe(false);
   });
 
   it('exports clearGatesNearWorldZ for boss spawn cleanup', () => {

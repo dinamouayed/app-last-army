@@ -6,19 +6,19 @@ import { updateEnemies, updateParticles } from './EnemySystem';
 import { updateGates } from './GateSystem';
 import { updateProjectiles } from './ProjectileSystem';
 import { updateShooting } from './ShootingSystem';
-import { updateSpawn } from './SpawnSystem';
+import { updateWorld } from './WorldGenerator';
 
 export function updateCombat(
   state: GameState,
   dt: number,
-  rng: () => number = Math.random,
+  rng?: () => number,
 ): void {
   if (state.status !== 'running') {
     return;
   }
   updateBoss(state, dt);
+  updateWorld(state, dt, rng);
   updateGates(state, dt, rng);
-  updateSpawn(state, dt, rng);
   updateShooting(state, dt);
   updateProjectiles(state, dt);
   updateEnemies(state, dt);

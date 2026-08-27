@@ -9,8 +9,10 @@ import { laneIndexToX } from '../math/lanes';
 import type { GameState } from '../types';
 import { scheduleFirstGate } from '../systems/GateSystem';
 import { scheduleFirstBoss } from '../systems/BossSystem';
+import { initWorld } from '../systems/WorldGenerator';
+import { createWorldRuntimeState } from '../world/worldState';
 
-export function createGameState(): GameState {
+export function createGameState(seed?: number): GameState {
   const armyX = laneIndexToX(GAME_CONFIG.startingLane, GAME_CONFIG.laneSpacing);
 
   const state: GameState = {
@@ -43,10 +45,12 @@ export function createGameState(): GameState {
     particles: [],
     ...createGateRuntimeState(),
     ...createBossRuntimeState(),
+    ...createWorldRuntimeState(seed),
   };
 
   scheduleFirstGate(state);
   scheduleFirstBoss(state);
+  initWorld(state);
   refreshFormation(state);
   return state;
 }

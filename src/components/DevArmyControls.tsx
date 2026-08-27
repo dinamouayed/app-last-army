@@ -47,6 +47,7 @@ export function DevArmyControls({ session }: DevArmyControlsProps) {
       <Text style={styles.label}>DEV BOSS</Text>
       <View style={styles.row}>
         <DevButton label="SPAWN" onPress={() => session.devSpawnBoss()} />
+        <DevButton label="+500m" onPress={() => session.devAdvanceDistance(500)} />
       </View>
     </View>
   );

@@ -17,6 +17,7 @@ import { updateCombat } from './CombatSystem';
 import { killEnemy, spawnBasicEnemy, spawnBasicEnemyAt, updateEnemies } from './EnemySystem';
 import { updateProjectiles } from './ProjectileSystem';
 import { fireCurrentWeapon, updateShooting } from './ShootingSystem';
+import { debugQueueSegment } from './WorldGenerator';
 
 describe('pistol shooting', () => {
   it('fires at the configured fire rate regardless of frame size', () => {
@@ -152,7 +153,7 @@ describe('basic enemy combat', () => {
 describe('updateCombat', () => {
   it('spawns enemies ahead of the player', () => {
     const state = createGameState();
-    state.spawnTimer = 0;
+    debugQueueSegment(state, 'EnemyWave', 0, 80);
     updateCombat(state, 1 / 60, () => 0.5);
     expect(countActive(state.enemies)).toBeGreaterThanOrEqual(1);
     const enemy = state.enemies.find((item) => item.active);

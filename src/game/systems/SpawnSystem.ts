@@ -1,6 +1,6 @@
 import { armyFrontWorldZ } from '../army/footprint';
 import { COMBAT_CONFIG } from '../config/combat';
-import { getSpawnPressure, pickGroupSize } from '../config/spawnPressure';
+import { isEnemySegmentKind, pickEnemyGroupSize, scaledSpawnInterval } from '../config/difficulty';
 import { GAME_CONFIG } from '../config/game';
 import { playerWorldZ } from '../math/camera';
 import {
@@ -101,13 +101,17 @@ export function updateSpawn(
     return;
   }
 
+  if (!enemySegmentAllowsSpawn(state)) {
+    state.spawnTimer = COMBAT_CONFIG.spawnRetryDelay;
+    return;
+  }
+
   if (livingEnemyCount(state.enemies) >= COMBAT_CONFIG.maxEnemies) {
     state.spawnTimer = COMBAT_CONFIG.spawnRetryDelay;
     return;
   }
 
-  const pressure = getSpawnPressure(state.distance);
-  const groupSize = pickGroupSize(pressure, rng);
+  const groupSize = pickEnemyGroupSize(state.distance, rng);
   const playerZ = playerWorldZ(state.distance, GAME_CONFIG.camera);
   const armyFrontZ = armyFrontWorldZ(playerZ, state.formationSlots);
   const minZ = minEnemySpawnZ(armyFrontZ);
@@ -119,7 +123,20 @@ export function updateSpawn(
   );
   const lane = pickSpawnLane(rng);
   const spawned = spawnEnemyGroup(state, groupSize, spawnZ, lane, rng, minZ);
-  state.spawnTimer = spawned > 0 ? pressure.spawnInterval : COMBAT_CONFIG.spawnRetryDelay;
+  state.spawnTimer = spawned > 0 ? scaledSpawnInterval(state.distance) : COMBAT_CONFIG.spawnRetryDelay;
+}
+
+function enemySegmentAllowsSpawn(state: GameState): boolean {
+  for (let i = 0; i < state.segments.length; i += 1) {
+    const segment = state.segments[i];
+    if (!segment?.active) {
+      continue;
+    }
+    if (state.distance >= segment.startDistance && state.distance < segment.startDistance + segment.length) {
+      return isEnemySegmentKind(segment.kind);
+    }
+  }
+  return true;
 }
 
 /** Lane-centered spawn X with a small cluster offset, always on asphalt. */

@@ -1,4 +1,6 @@
-import { Skia, matchFont, type SkCanvas, type SkPaint } from '@shopify/react-native-skia';
+import type { SkCanvas, SkPaint } from '@shopify/react-native-skia';
+
+import { Skia, matchFont } from './skia';
 
 import { GATE_CONFIG } from '../game/config/gates';
 import { GAME_CONFIG } from '../game/config/game';

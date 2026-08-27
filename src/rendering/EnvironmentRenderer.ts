@@ -1,4 +1,6 @@
-import { Skia, type SkCanvas, type SkPaint } from '@shopify/react-native-skia';
+import type { SkCanvas, SkPaint } from '@shopify/react-native-skia';
+
+import { Skia } from './skia';
 
 import { GAME_CONFIG } from '../game/config/game';
 import { horizonY } from '../game/math/camera';

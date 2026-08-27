@@ -58,4 +58,22 @@ describe('generateGateChoices', () => {
     }
     expect(found).toBe(true);
   });
+
+  it('recovery mode only offers survivable positive math', () => {
+    for (let i = 0; i < 24; i += 1) {
+      const choices = generateGateChoices(3, ['pistol'], 80, () => (i * 0.19) % 1, 'recovery');
+      expect(choices.length).toBeGreaterThanOrEqual(2);
+      for (const choice of choices) {
+        expect(choice.kind).toBe('math');
+        expect(choice.shootable).toBeFalsy();
+        expect(choice.operation === 'add' || choice.operation === 'multiply').toBe(true);
+        expect(applyGateArithmetic(3, choice.operation!, choice.value!)).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('weapon mode includes a barrel gate', () => {
+    const choices = generateGateChoices(12, ['pistol'], 200, () => 0.11, 'weapon');
+    expect(choices.some((choice) => choice.kind === 'weapon')).toBe(true);
+  });
 });

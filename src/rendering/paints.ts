@@ -1,14 +1,6 @@
-import {
-  PaintStyle,
-  Skia,
-  StrokeCap,
-  StrokeJoin,
-  TileMode,
-  type SkImage,
-  type SkPaint,
-  type SkPath,
-  type SkPictureRecorder,
-} from '@shopify/react-native-skia';
+import type { SkImage, SkPaint, SkPath, SkPictureRecorder } from '@shopify/react-native-skia';
+
+import { PaintStyle, Skia, StrokeCap, StrokeJoin, TileMode } from './skia';
 
 import { PALETTE } from '../game/config/palette';
 
