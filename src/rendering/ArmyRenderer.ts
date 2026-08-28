@@ -53,21 +53,6 @@ export function drawArmy(
   const frontIndices = sortedSlotIndices(state.formationSlots);
   const leaderIndex = frontIndices[0];
 
-  if (state.armyHitFlash > 0) {
-    const flash = state.armyHitFlash / ARMY_CONFIG.hitFlashDuration;
-    resources.paints.hitFlash.setAlphaf(0.22 * flash);
-    canvas.drawRect(
-      {
-        x: width * 0.22,
-        y: height * GAME_CONFIG.camera.playerYRatio - 80,
-        width: width * 0.56,
-        height: 120,
-      },
-      resources.paints.hitFlash,
-    );
-    resources.paints.hitFlash.setAlphaf(1);
-  }
-
   for (let drawOrder = state.formationSlots.length - 1; drawOrder >= 0; drawOrder -= 1) {
     const slot = state.formationSlots[drawOrder];
     if (!slot?.active || slot.dying) {

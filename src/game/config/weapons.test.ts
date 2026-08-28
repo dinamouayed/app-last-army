@@ -48,4 +48,19 @@ describe('weapons config', () => {
     expect(WEAPONS.shotgun.projectileCount).toBeGreaterThan(1);
     expect(WEAPONS.shotgun.spread).toBeGreaterThan(0);
   });
+
+  it('keeps each unlock tier stronger than the previous at equal army size', () => {
+    const origins = 2;
+    const dps = (id: (typeof WEAPON_PROGRESSION)[number]) => {
+      const weapon = WEAPONS[id];
+      const pellets = weapon.projectileCount > 1 ? weapon.projectileCount : origins;
+      return weapon.damage * pellets * weapon.fireRate;
+    };
+
+    for (let i = 1; i < WEAPON_PROGRESSION.length; i += 1) {
+      const prev = WEAPON_PROGRESSION[i - 1]!;
+      const next = WEAPON_PROGRESSION[i]!;
+      expect(dps(next)).toBeGreaterThan(dps(prev));
+    }
+  });
 });

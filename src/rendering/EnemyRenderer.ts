@@ -30,30 +30,6 @@ function drawHpBar(
   resources.paints.hpFill.setAlphaf(1);
 }
 
-function drawHitFlash(
-  canvas: SkCanvas,
-  resources: RenderResources,
-  screenX: number,
-  screenY: number,
-  scale: number,
-  amount: number,
-): void {
-  if (amount <= 0) {
-    return;
-  }
-  resources.paints.hitFlash.setAlphaf(Math.min(0.55, amount * 6));
-  canvas.drawOval(
-    {
-      x: screenX - 16 * scale,
-      y: screenY - 50 * scale,
-      width: 32 * scale,
-      height: 48 * scale,
-    },
-    resources.paints.hitFlash,
-  );
-  resources.paints.hitFlash.setAlphaf(1);
-}
-
 function drawOneEnemy(
   canvas: SkCanvas,
   resources: RenderResources,
@@ -84,14 +60,16 @@ function drawOneEnemy(
     resources.paints.enemyPants.setAlphaf(1 - death);
   }
 
+  const inMelee = enemy.behavior === 'attacking' && !enemy.dying;
+
   drawSoldierAt(
     canvas,
     resources,
     {
       worldX: enemy.x,
       worldZ: enemy.z,
-      elapsed: state.elapsed,
-      stridePhase: enemy.id * 0.7,
+      elapsed: inMelee ? 0 : state.elapsed,
+      stridePhase: inMelee ? 0 : enemy.id * 0.7,
       kit: 'enemy',
     },
     state.distance,
@@ -101,14 +79,6 @@ function drawOneEnemy(
 
   if (!enemy.dying) {
     drawHpBar(canvas, resources, enemy, point.screenX, point.screenY, point.scale);
-    drawHitFlash(
-      canvas,
-      resources,
-      point.screenX,
-      point.screenY,
-      point.scale,
-      enemy.hitFlash,
-    );
   }
 
   resources.paints.enemyUniform.setAlphaf(1);

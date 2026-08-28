@@ -138,13 +138,23 @@ export function closestPointOnArmyFootprint(
     const dx = enemyX - slice.x;
     const dz = enemyZ - slice.z;
     const dist = Math.sqrt(dx * dx + dz * dz);
-    if (dist < 0.0001) {
-      return { x: slice.x + slice.radius, z: slice.z };
+    let bx: number;
+    let bz: number;
+    if (dist < slice.radius) {
+      if (dist < 0.0001) {
+        bx = slice.x;
+        bz = slice.z + slice.radius;
+      } else {
+        bx = slice.x + (dx / dist) * slice.radius;
+        bz = slice.z + (dz / dist) * slice.radius;
+      }
+    } else if (dist < 0.0001) {
+      bx = slice.x;
+      bz = slice.z + slice.radius;
+    } else {
+      bx = slice.x + (dx / dist) * slice.radius;
+      bz = slice.z + (dz / dist) * slice.radius;
     }
-    const nx = dx / dist;
-    const nz = dz / dist;
-    const bx = slice.x + nx * slice.radius;
-    const bz = slice.z + nz * slice.radius;
     const d2 = (enemyX - bx) ** 2 + (enemyZ - bz) ** 2;
     if (d2 < bestDistSq) {
       bestDistSq = d2;

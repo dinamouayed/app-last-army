@@ -41,7 +41,7 @@ export const WEAPONS = {
     id: 'shotgun',
     name: 'Shotgun',
     damage: 9,
-    fireRate: 1.4,
+    fireRate: 3.6,
     projectileSpeed: 44,
     projectileCount: 5,
     spread: 0.18,

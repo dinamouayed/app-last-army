@@ -2,9 +2,6 @@ import { ARMY_CONFIG } from '../config/army';
 import type { GameState } from '../types';
 
 export function updateArmyVisuals(state: GameState, dt: number): void {
-  if (state.armyHitFlash > 0) {
-    state.armyHitFlash = Math.max(0, state.armyHitFlash - dt);
-  }
   if (state.armyDeathPulse > 0) {
     state.armyDeathPulse = Math.max(0, state.armyDeathPulse - dt);
   }

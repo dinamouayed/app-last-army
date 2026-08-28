@@ -123,7 +123,6 @@ function triggerLossFeedback(
   if (lost <= 0) {
     return;
   }
-  state.armyHitFlash = ARMY_CONFIG.hitFlashDuration;
   state.armyDeathPulse = ARMY_CONFIG.deathPulseDuration;
   state.armyShake = ARMY_CONFIG.shakeDuration;
   state.contactPulse = COMBAT_CONFIG.contactPulseDuration;

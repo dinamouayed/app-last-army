@@ -298,19 +298,22 @@ function updateAttackingEnemy(
     return;
   }
 
-  const snapped = snapEnemyToArmyContact(
-    enemy.x,
-    enemy.z,
-    enemy.radius,
-    footprint,
-  );
-  enemy.x = snapped.x;
-  enemy.z = snapped.z;
-  clampEnemyToRoad(enemy);
-
-  if (!enemyOverlapsArmyFootprint(enemy.x, enemy.z, enemy.radius, footprint)) {
+  const contactDist = nearestFootprintDistance(enemy.x, enemy.z, footprint);
+  if (contactDist > config.engagementStartDistance * 0.35) {
     enemy.behavior = 'engaging';
     return;
+  }
+
+  if (contactDist > enemy.radius * 0.65) {
+    const snapped = snapEnemyToArmyContact(
+      enemy.x,
+      enemy.z,
+      enemy.radius,
+      footprint,
+    );
+    enemy.x = snapped.x;
+    enemy.z = snapped.z;
+    clampEnemyToRoad(enemy);
   }
 
   enemy.attackTimer -= dt;

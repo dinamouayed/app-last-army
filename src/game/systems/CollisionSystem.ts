@@ -22,7 +22,9 @@ export function applyProjectileHit(state: GameState, enemyIndex: number, damage:
   }
   enemy.hp -= damage;
   enemy.hitFlash = COMBAT_CONFIG.hitFlashDuration;
-  enemy.z += COMBAT_CONFIG.hitKnockback;
+  if (enemy.behavior !== 'attacking') {
+    enemy.z += COMBAT_CONFIG.hitKnockback;
+  }
   if (enemy.hp <= 0) {
     killEnemy(state, enemy);
   }

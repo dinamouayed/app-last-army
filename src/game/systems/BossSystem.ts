@@ -234,10 +234,6 @@ export function killBoss(state: GameState, boss: Boss): void {
   boss.behavior = 'approaching';
   boss.attackPhase = 'idle';
   spawnBossDeathParticles(state, boss.x, boss.z);
-  state.gatePulse = BOSS_CONFIG.unlockPulseDuration;
-  state.gatePulseX = boss.x;
-  state.gatePulseZ = boss.z;
-  state.gatePulsePositive = true;
   state.pendingRecovery = true;
 }
 
@@ -247,9 +243,6 @@ export function applyProjectileBossHit(state: GameState, damage: number): void {
     return;
   }
   boss.hp -= damage;
-  boss.hitFlash = BOSS_CONFIG.hitFlashDuration;
-  boss.depthOffset = Math.min(boss.depthOffset + BOSS_CONFIG.hitKnockback, BOSS_CONFIG.spawnDepthOffset);
-  syncBossWorldZ(state, boss);
   if (boss.hp <= 0) {
     killBoss(state, boss);
   }
