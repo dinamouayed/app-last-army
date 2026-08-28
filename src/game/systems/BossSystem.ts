@@ -7,12 +7,14 @@ import {
   bossSlamDamageForEncounter,
 } from '../config/bosses';
 import { COMBAT_CONFIG } from '../config/combat';
+import { isGateSegmentKind } from '../config/difficulty';
 import { GAME_CONFIG } from '../config/game';
 import { acquireEntity } from '../entities/combat';
 import type { Particle } from '../entities/combat';
 import type { Boss } from '../entities/boss';
 import { playerWorldZ } from '../math/camera';
 import { asphaltLaneCenterX } from '../math/roadBounds';
+import { recycleSegment } from '../world/worldState';
 import { clearGatesNearWorldZ } from './GateSystem';
 import type { GameState } from '../types';
 
@@ -45,7 +47,62 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 export function scheduleFirstBoss(state: GameState): void {
-  state.nextBossDistance = resolveBossSpawnDistance(state, BOSS_CONFIG.firstBossDistance);
+  state.nextBossKillThreshold = BOSS_CONFIG.firstBossKills;
+  state.nextBossDistance = 0;
+}
+
+function isBossArmed(state: GameState): boolean {
+  return state.nextBossDistance > 0;
+}
+
+/** Arm a nearby BossApproach once the kill threshold is met. */
+export function tryScheduleBossFromKills(state: GameState): void {
+  if (state.boss.active) {
+    return;
+  }
+  if (isBossArmed(state)) {
+    return;
+  }
+  if (state.enemiesKilled < state.nextBossKillThreshold) {
+    return;
+  }
+
+  const keepUntil = state.distance + 16;
+  for (let i = 0; i < state.segments.length; i += 1) {
+    const segment = state.segments[i];
+    if (segment?.active && segment.startDistance >= keepUntil) {
+      recycleSegment(segment);
+    }
+  }
+
+  let frontier = Math.max(state.distance, keepUntil);
+  let lastKind = state.lastSegmentKind;
+  for (let i = 0; i < state.segments.length; i += 1) {
+    const segment = state.segments[i];
+    if (!segment?.active) {
+      continue;
+    }
+    frontier = Math.max(frontier, segment.startDistance + segment.length);
+    lastKind = segment.kind;
+  }
+  state.worldFrontier = frontier;
+  state.lastSegmentKind = lastKind;
+  state.sameKindStreak = lastKind ? 1 : 0;
+
+  let nextGate = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < state.segments.length; i += 1) {
+    const segment = state.segments[i];
+    if (!segment?.active || segment.materialized || !isGateSegmentKind(segment.kind)) {
+      continue;
+    }
+    nextGate = Math.min(nextGate, segment.startDistance);
+  }
+  state.nextGateDistance = Number.isFinite(nextGate) ? nextGate : 0;
+
+  state.nextBossDistance = resolveBossSpawnDistance(
+    state,
+    frontier + BOSS_CONFIG.approachDistance,
+  );
 }
 
 function syncBossWorldZ(state: GameState, boss: Boss): void {
@@ -83,20 +140,8 @@ function spawnBossDeathParticles(state: GameState, x: number, z: number): void {
 }
 
 function spawnSlamImpactParticles(state: GameState, x: number, z: number): void {
-  const offsets = [
-    [0, 0],
-    [0.35, 0.08],
-    [-0.32, 0.1],
-    [0.18, -0.12],
-    [-0.2, -0.1],
-    [0.42, -0.04],
-    [-0.4, 0.04],
-  ] as const;
-  for (let i = 0; i < offsets.length; i += 1) {
-    const offset = offsets[i];
-    if (!offset) {
-      continue;
-    }
+  const burstCount = 18;
+  for (let i = 0; i < burstCount; i += 1) {
     const particle = acquireEntity(state.particles, COMBAT_CONFIG.maxParticles, () => ({
       active: false,
       x: 0,
@@ -105,18 +150,20 @@ function spawnSlamImpactParticles(state: GameState, x: number, z: number): void 
       vz: 0,
       life: 0,
       maxLife: COMBAT_CONFIG.particleLife,
-      kind: 'default' as const,
+      kind: 'slam' as const,
     } satisfies Particle));
     if (!particle) {
       return;
     }
+    const angle = (i / burstCount) * Math.PI * 2 + (i % 3) * 0.22;
+    const speed = 6 + (i % 5) * 2.4;
     particle.active = true;
-    particle.x = x + offset[0];
-    particle.z = z + offset[1];
-    particle.vx = offset[0] * 10;
-    particle.vz = offset[1] * 8 - 2;
-    particle.life = COMBAT_CONFIG.particleLife * 0.95;
-    particle.maxLife = COMBAT_CONFIG.particleLife * 0.95;
+    particle.x = x + Math.cos(angle) * 0.12;
+    particle.z = z + Math.sin(angle) * 0.1;
+    particle.vx = Math.cos(angle) * speed;
+    particle.vz = Math.sin(angle) * speed * 0.75 - 1.5;
+    particle.life = COMBAT_CONFIG.particleLife * 1.15;
+    particle.maxLife = COMBAT_CONFIG.particleLife * 1.15;
   }
 }
 
@@ -224,8 +271,11 @@ function executeSlam(state: GameState, boss: Boss): void {
   boss.slamDamage = damage;
   removeSoldiersAtContact(state, damage, boss.x, impactZ);
   spawnSlamImpactParticles(state, boss.x, impactZ);
+  state.slamBurst = BOSS_CONFIG.slamBurstDuration;
+  state.slamBurstX = boss.x;
+  state.slamBurstZ = impactZ;
   state.armyShake = BOSS_CONFIG.slamShakeDuration;
-  state.contactPulse = COMBAT_CONFIG.contactPulseDuration * 1.35;
+  state.contactPulse = COMBAT_CONFIG.contactPulseDuration * 1.85;
   state.contactX = boss.x;
   state.contactZ = impactZ;
 }
@@ -279,8 +329,13 @@ function advanceAttackPhase(state: GameState, boss: Boss): void {
       boss.attackPhaseT = BOSS_CONFIG.windupRaiseDuration;
       break;
     case 'windup':
-      boss.attackPhase = 'windupHold';
-      boss.attackPhaseT = BOSS_CONFIG.windupHoldDuration;
+      if (BOSS_CONFIG.windupHoldDuration > 0) {
+        boss.attackPhase = 'windupHold';
+        boss.attackPhaseT = BOSS_CONFIG.windupHoldDuration;
+      } else {
+        boss.attackPhase = 'slam';
+        boss.attackPhaseT = BOSS_CONFIG.slamDuration;
+      }
       break;
     case 'windupHold':
       boss.attackPhase = 'slam';
@@ -333,7 +388,7 @@ function updateBossSpawn(state: GameState): void {
   if (state.boss.active) {
     return;
   }
-  if (state.distance < state.nextBossDistance) {
+  if (!isBossArmed(state) || state.distance < state.nextBossDistance) {
     return;
   }
   spawnBoss(state);
@@ -347,6 +402,10 @@ function updateLivingBoss(state: GameState, dt: number): void {
 
   if (boss.hitFlash > 0) {
     boss.hitFlash = Math.max(0, boss.hitFlash - dt);
+  }
+
+  if (state.slamBurst > 0) {
+    state.slamBurst = Math.max(0, state.slamBurst - dt);
   }
 
   boss.animTime += dt;
@@ -366,10 +425,8 @@ function updateBossDeath(state: GameState, dt: number): void {
   boss.deathT += dt;
   if (boss.deathT >= BOSS_CONFIG.deathDuration) {
     boss.active = false;
-    state.nextBossDistance = resolveBossSpawnDistance(
-      state,
-      state.distance + BOSS_CONFIG.bossInterval,
-    );
+    state.nextBossKillThreshold = state.enemiesKilled + BOSS_CONFIG.bossKillInterval;
+    state.nextBossDistance = 0;
   }
 }
 

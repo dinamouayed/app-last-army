@@ -23,6 +23,9 @@ export interface GameState extends CombatState, GateRuntimeState, BossRuntimeSta
   armyHitFlash: number;
   armyDeathPulse: number;
   armyShake: number;
+  slamBurst: number;
+  slamBurstX: number;
+  slamBurstZ: number;
   fireOriginIndex: number;
   dyingVisuals: DyingSoldierVisual[];
 }
@@ -42,6 +45,8 @@ export interface HudSnapshot {
   hasChangedLane: boolean;
   difficulty: number;
   nextBossDistance: number;
+  nextBossKillThreshold: number;
+  enemiesKilled: number;
   runSeed: number;
   segmentKind: string;
 }

@@ -5,11 +5,13 @@ export const ARMY_CONFIG = {
   formationFrontWidth: 1,
   formationRearMaxWidth: 19,
   widthGrowEveryDepth: 1,
-  formationSpacingX: 0.36,
-  formationSpacingZ: 0.34,
+  formationSpacingX: 0.3,
+  formationSpacingZ: 0.28,
   rearSpacingXScale: 0.045,
   formationMaxDepth: 22,
-  soldierCollisionRadius: 0.28,
+  soldierCollisionRadius: 0.24,
+  /** Extra draw scale on top of GAME_CONFIG.soldierDrawScale — player army only. */
+  visualScale: 0.78,
   hitFlashDuration: 0.12,
   deathPulseDuration: 0.2,
   shakeDuration: 0.14,
@@ -25,9 +27,9 @@ export const ARMY_CONFIG = {
   /** Cap on aggregate damage multiplier from army size. */
   armyDamageScaleMax: 2.4,
   deathParticleCount: 14,
-  leaderScaleBoost: 1.08,
-  crowdScaleMin: 0.78,
-  rearScaleBoost: 1.12,
+  leaderScaleBoost: 1.04,
+  crowdScaleMin: 0.74,
+  rearScaleBoost: 1.06,
 } as const;
 
 export type ArmyConfig = typeof ARMY_CONFIG;

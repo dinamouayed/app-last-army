@@ -1,8 +1,12 @@
 export const BOSS_CONFIG = {
-  /** First boss encounter distance (meters) — ~20 s of runway to grow the army. */
+  /** Kills required before the first boss is armed. */
+  firstBossKills: 28,
+  /** Additional kills required between later boss encounters. */
+  bossKillInterval: 40,
+  /** World meters of BossApproach after the kill threshold is met. */
+  approachDistance: 48,
+  /** HP scaling reference distance — spawn is kill-gated, not this value. */
   firstBossDistance: 320,
-  /** Distance between boss encounters after the first. */
-  bossInterval: 450,
   baseMaxHp: 850,
   hpPerDistance: 2.8,
   spawnDepthOffset: 48,
@@ -16,28 +20,31 @@ export const BOSS_CONFIG = {
   collisionRadius: 0.85,
   attackInterval: 3.2,
   firstBossAttackInterval: 5.0,
-  /** Static pose before raising arms (contact only). */
-  holdBeforeAttack: 2.6,
-  windupRaiseDuration: 2.2,
-  /** Arms held above head before the slam — visual only, no damage. */
-  windupHoldDuration: 1.6,
-  /** Descent animation — visual only, no damage. */
-  slamDuration: 1.2,
-  /** Beat after hands hit the ground before soldiers are removed. */
-  slamImpactPause: 0.18,
-  /** Keep the slam pose (arms down) before standing back up. */
-  slamHoldDuration: 5.8,
-  /** Rise back to standing. */
-  recoverDuration: 2.8,
+  /** Static pose before the attack sequence — no damage. */
+  holdBeforeAttack: 1.5,
+  /** Fast wind-up frames (arms raised). */
+  windupRaiseDuration: 0.42,
+  /** Skip the arms-up hold — wind-up flows straight into the slam. */
+  windupHoldDuration: 0,
+  /** Fast slam descent — visual only, no damage until slamHold. */
+  slamDuration: 0.24,
+  /** Brief freeze on the ground pose before soldiers are hit. */
+  slamImpactPause: 0.07,
+  /** Total time held in the ground slam pose (includes impact pause). */
+  slamHoldDuration: 0.28,
+  /** Fast recovery frames back to standing. */
+  recoverDuration: 0.36,
   /** Standing pause after recovering, before the next idle wait. */
-  recoverHoldDuration: 1.9,
+  recoverHoldDuration: 1.0,
+  /** Screen explosion burst when the slam lands. */
+  slamBurstDuration: 0.48,
   hitFlashDuration: 0.1,
   hitKnockback: 0.12,
   deathDuration: 0.55,
   deathParticleCount: 18,
   unlockPulseDuration: 0.55,
   slamShakeDuration: 0.22,
-  /** Screen scale for 256×256 atlas cells. */
+  /** Screen scale for boss display cells (atlas is 512px, drawn at 256 logical). */
   visualScale: 1.12,
   idleAnimFps: 6,
   slamBaseDamage: 12,
@@ -49,7 +56,7 @@ export const BOSS_CONFIG = {
   slamArmyFraction: 0.28,
   slamFractionPerEncounter: 0.06,
   /** Minimum run distance between a boss spawn and the next gate spawn. */
-  minGateDistanceSeparation: 90,
+  minGateDistanceSeparation: 56,
   /** World-depth clearance — gates/barrels within this range of the boss are removed. */
   gateClearanceZ: 48,
 } as const;

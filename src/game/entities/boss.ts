@@ -35,6 +35,7 @@ export interface Boss {
 export interface BossRuntimeState {
   boss: Boss;
   nextBossDistance: number;
+  nextBossKillThreshold: number;
   bossEncounterCount: number;
 }
 
@@ -65,6 +66,7 @@ export function createBossRuntimeState(): BossRuntimeState {
   return {
     boss: createEmptyBoss(),
     nextBossDistance: 0,
+    nextBossKillThreshold: 0,
     bossEncounterCount: 0,
   };
 }

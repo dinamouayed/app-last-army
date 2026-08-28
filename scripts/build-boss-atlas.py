@@ -26,7 +26,8 @@ FRAME_SOURCES: dict[str, list[str]] = {
     "recover": ["boss-recover.png", "boss-idle.png"],
 }
 
-TARGET_SIZE = 256
+ATLAS_CELL = 512
+DISPLAY_CELL = 256
 MAGENTA_T0 = 22.0
 MAGENTA_T1 = 85.0
 
@@ -150,8 +151,8 @@ def isolate_subject(img: Image.Image) -> Image.Image:
 def load_frame(name: str) -> Image.Image:
     img = Image.open(resolve_source(name)).convert("RGBA")
     isolated = isolate_subject(img)
-    if isolated.size != (TARGET_SIZE, TARGET_SIZE):
-        isolated = isolated.resize((TARGET_SIZE, TARGET_SIZE), Image.Resampling.LANCZOS)
+    if isolated.size != (ATLAS_CELL, ATLAS_CELL):
+        isolated = isolated.resize((ATLAS_CELL, ATLAS_CELL), Image.Resampling.LANCZOS)
     return isolated
 
 
@@ -165,8 +166,8 @@ def main() -> None:
     for group, names in FRAME_SOURCES.items():
         frames[group] = [load_frame(name) for name in names]
 
-    cell_w = TARGET_SIZE
-    cell_h = TARGET_SIZE
+    cell_w = ATLAS_CELL
+    cell_h = ATLAS_CELL
     total_frames = sum(len(v) for v in frames.values())
     atlas = Image.new("RGBA", (cell_w, cell_h * total_frames), (0, 0, 0, 0))
 
@@ -200,7 +201,7 @@ def main() -> None:
         "  h: number;",
         "}",
         "",
-        f"export const BOSS_CELL = {{ w: {cell_w}, h: {cell_h} }} as const;",
+        f"export const BOSS_CELL = {{ w: {DISPLAY_CELL}, h: {DISPLAY_CELL} }} as const;",
         "",
         "export const BOSS_FRAMES = {",
     ]

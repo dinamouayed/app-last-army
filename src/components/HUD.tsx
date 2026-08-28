@@ -40,8 +40,15 @@ export function HUD({
       <View style={styles.top}>
         <View style={styles.army}>
           <View style={styles.armyIcon}>
-            <View style={styles.helmet} />
-            <View style={styles.head} />
+            <View style={styles.soldierHelmet} />
+            <View style={styles.soldierBrim} />
+            <View style={styles.soldierHead} />
+            <View style={styles.soldierTorso} />
+            <View style={styles.soldierArm} />
+            <View style={styles.soldierGun} />
+            <View style={styles.soldierBarrel} />
+            <View style={styles.soldierLegLeft} />
+            <View style={styles.soldierLegRight} />
           </View>
           <Text style={styles.armyCount}>{Math.max(0, Math.floor(armySize))}</Text>
         </View>
@@ -73,31 +80,95 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   army: {
-    width: 88,
+    width: 96,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
   armyIcon: {
     width: 22,
-    height: 22,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
+    height: 26,
   },
-  helmet: {
+  soldierHelmet: {
     position: 'absolute',
     top: 0,
-    width: 16,
-    height: 10,
-    borderRadius: 8,
+    left: 3,
+    width: 12,
+    height: 7,
+    borderRadius: 6,
     backgroundColor: PALETTE.soldierHelmet,
   },
-  head: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+  soldierBrim: {
+    position: 'absolute',
+    top: 5,
+    left: 2,
+    width: 14,
+    height: 2.5,
+    borderRadius: 1,
+    backgroundColor: PALETTE.soldierHelmet,
+  },
+  soldierHead: {
+    position: 'absolute',
+    top: 6,
+    left: 5,
+    width: 8,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: PALETTE.soldierSkin,
+  },
+  soldierTorso: {
+    position: 'absolute',
+    top: 12,
+    left: 4,
+    width: 10,
+    height: 8,
+    borderRadius: 2,
     backgroundColor: PALETTE.soldierUniform,
-    marginBottom: 1,
+  },
+  soldierArm: {
+    position: 'absolute',
+    top: 13,
+    left: 12,
+    width: 4,
+    height: 5,
+    borderRadius: 1,
+    backgroundColor: PALETTE.soldierUniformDark,
+  },
+  soldierGun: {
+    position: 'absolute',
+    top: 14,
+    left: 14,
+    width: 3,
+    height: 6,
+    borderRadius: 1,
+    backgroundColor: PALETTE.soldierGun,
+  },
+  soldierBarrel: {
+    position: 'absolute',
+    top: 13,
+    left: 16,
+    width: 6,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: PALETTE.soldierGunMetal,
+  },
+  soldierLegLeft: {
+    position: 'absolute',
+    top: 19,
+    left: 5,
+    width: 3.5,
+    height: 7,
+    borderRadius: 1,
+    backgroundColor: PALETTE.soldierPants,
+  },
+  soldierLegRight: {
+    position: 'absolute',
+    top: 19,
+    left: 10,
+    width: 3.5,
+    height: 7,
+    borderRadius: 1,
+    backgroundColor: PALETTE.soldierPants,
   },
   armyCount: {
     color: PALETTE.hudText,

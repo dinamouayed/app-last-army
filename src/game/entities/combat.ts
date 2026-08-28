@@ -43,7 +43,7 @@ export interface Particle {
   vz: number;
   life: number;
   maxLife: number;
-  kind: 'default' | 'gatePositive' | 'gateNegative';
+  kind: 'default' | 'gatePositive' | 'gateNegative' | 'slam';
 }
 
 export interface CombatState {
@@ -56,6 +56,7 @@ export interface CombatState {
   contactZ: number;
   spawnTimer: number;
   nextEntityId: number;
+  enemiesKilled: number;
   projectiles: Projectile[];
   enemies: Enemy[];
   particles: Particle[];

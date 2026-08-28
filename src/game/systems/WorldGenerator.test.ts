@@ -40,7 +40,8 @@ describe('world generation', () => {
     expect(live.length).toBeGreaterThanOrEqual(3);
     expect(state.worldFrontier).toBeGreaterThan(state.distance + 120);
     const kinds = new Set(live.map((segment) => segment.kind));
-    expect(kinds.has('BossApproach')).toBe(true);
+    expect(kinds.has('BossApproach')).toBe(false);
+    expect(kinds.has('EnemyWave')).toBe(true);
   });
 
   it('materializes an EnemyWave ahead of the army', () => {
@@ -96,13 +97,38 @@ describe('world generation', () => {
     state.distance = DIFFICULTY_CONFIG.opening[0]!.startDistance + 1;
     expect(currentSegment(state)?.kind).toBe('EnemyWave');
   });
+
+  it('does not insert BossApproach before the kill threshold', () => {
+    const state = createGameState(1);
+    expect(state.segments.some((segment) => segment.active && segment.kind === 'BossApproach')).toBe(false);
+  });
+
+  it('inserts BossApproach after enough enemies are killed', () => {
+    const state = createGameState(1);
+    state.enemiesKilled = BOSS_CONFIG.firstBossKills;
+    updateWorld(state, 0, () => 0.5);
+    expect(state.nextBossDistance).toBeGreaterThan(state.distance);
+    expect(state.segments.some((segment) => segment.active && segment.kind === 'BossApproach')).toBe(true);
+  });
+
+  it('queues a follow-up enemy group on GateChoice', () => {
+    const state = createGameState(1);
+    debugQueueSegment(state, 'GateChoice', 0, 80);
+    updateWorld(state, 0, () => 0.4);
+    const gated = state.segments.find(
+      (segment) => segment.active && segment.kind === 'GateChoice' && segment.startDistance === 0,
+    );
+    expect(gated?.waveRemaining).toBe(1);
+    expect(gated?.waveTimer).toBe(DIFFICULTY_CONFIG.gateFollowupDelay);
+  });
 });
 
 describe('world fairness', () => {
   it('never schedules a gate-only death row in the opening lookahead', () => {
     for (let seed = 1; seed <= 12; seed += 1) {
       const state = createGameState(seed);
-      expect(state.nextBossDistance).toBeGreaterThanOrEqual(BOSS_CONFIG.firstBossDistance);
+      expect(state.nextBossDistance).toBe(0);
+      expect(state.nextBossKillThreshold).toBe(BOSS_CONFIG.firstBossKills);
       const live = activeSegments(state);
       expect(live.some((segment) => segment.kind === 'GateChoice' || segment.kind === 'RecoverySection')).toBe(
         true,

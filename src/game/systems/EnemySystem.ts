@@ -187,6 +187,7 @@ export function killEnemy(state: GameState, enemy: Enemy): void {
   enemy.dying = true;
   enemy.deathT = 0;
   enemy.behavior = 'approaching';
+  state.enemiesKilled += 1;
   spawnDeathParticles(state, enemy.x, enemy.z);
 }
 

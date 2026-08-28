@@ -34,18 +34,18 @@ export const DIFFICULTY_CONFIG = {
     maxEngaging: 0.72,
   },
   enemyCount: {
-    minStart: 1,
-    maxStart: 2,
-    minLate: 3,
-    maxLate: 6,
+    minStart: 2,
+    maxStart: 3,
+    minLate: 4,
+    maxLate: 7,
   },
   spawnInterval: {
-    start: 2.6,
-    end: 1.28,
+    start: 1.55,
+    end: 0.95,
   },
   waveGroups: {
-    start: 1,
-    end: 3,
+    start: 2,
+    end: 4,
   },
   gateValue: {
     addMaxMultiplier: 2.2,
@@ -64,33 +64,35 @@ export const DIFFICULTY_CONFIG = {
   materializeLead: 0,
   /** Opening encounters preserve the pre-Phase-8 early pacing. */
   opening: [
-    { kind: 'EnemyWave' as const, startDistance: 20, length: 28 },
-    { kind: 'GateChoice' as const, startDistance: 48, length: 80 },
+    { kind: 'EnemyWave' as const, startDistance: 20, length: 52 },
+    { kind: 'GateChoice' as const, startDistance: 72, length: 64 },
   ],
   segmentLengths: {
-    GateChoice: { min: 72, max: 118 },
-    EnemyWave: { min: 52, max: 88 },
-    ShootableGate: { min: 74, max: 108 },
-    WeaponUnlock: { min: 80, max: 118 },
-    MixedEncounter: { min: 86, max: 126 },
-    RecoverySection: { min: 58, max: 82 },
-    BossApproach: { min: BOSS_CONFIG.minGateDistanceSeparation, max: BOSS_CONFIG.minGateDistanceSeparation },
+    GateChoice: { min: 56, max: 78 },
+    EnemyWave: { min: 56, max: 82 },
+    ShootableGate: { min: 58, max: 82 },
+    WeaponUnlock: { min: 64, max: 88 },
+    MixedEncounter: { min: 68, max: 96 },
+    RecoverySection: { min: 34, max: 48 },
+    BossApproach: { min: BOSS_CONFIG.approachDistance, max: BOSS_CONFIG.approachDistance },
   } satisfies Record<SegmentKind, SegmentLengthRange>,
   /** Base weights — Recovery / BossApproach are mostly rule-driven. */
   baseWeights: {
-    GateChoice: 30,
-    EnemyWave: 28,
-    ShootableGate: 14,
-    WeaponUnlock: 10,
-    MixedEncounter: 12,
-    RecoverySection: 6,
+    GateChoice: 18,
+    EnemyWave: 38,
+    ShootableGate: 12,
+    WeaponUnlock: 8,
+    MixedEncounter: 18,
+    RecoverySection: 4,
     BossApproach: 0,
   } satisfies Record<SegmentKind, number>,
   lowArmySize: 5,
   tinyArmySize: 2,
   minWeaponSpacing: 150,
-  maxSameKindStreak: 2,
-  recoveryAfterBossGap: 18,
+  maxSameKindStreak: 3,
+  recoveryAfterBossGap: 14,
+  /** Seconds after a gate appears before a follow-up enemy group spawns ahead. */
+  gateFollowupDelay: 1.85,
   mixedUnlockComplexity: 0.18,
 } as const;
 
@@ -115,6 +117,13 @@ export const GATE_SEGMENT_KINDS: readonly SegmentKind[] = [
 ];
 
 export const ENEMY_SEGMENT_KINDS: readonly SegmentKind[] = ['EnemyWave', 'MixedEncounter'];
+
+/** Gate lanes that spawn a delayed enemy group so the road is not empty after the choice. */
+export const GATE_FOLLOWUP_KINDS: readonly SegmentKind[] = [
+  'GateChoice',
+  'ShootableGate',
+  'WeaponUnlock',
+];
 
 export interface DifficultySnapshot {
   factor: number;
@@ -284,6 +293,10 @@ export function isGateSegmentKind(kind: SegmentKind): boolean {
 
 export function isEnemySegmentKind(kind: SegmentKind): boolean {
   return ENEMY_SEGMENT_KINDS.includes(kind);
+}
+
+export function isGateFollowupKind(kind: SegmentKind): boolean {
+  return GATE_FOLLOWUP_KINDS.includes(kind);
 }
 
 export function segmentLengthFor(

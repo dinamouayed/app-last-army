@@ -21,6 +21,13 @@ function phaseProgress(phaseT: number, duration: number): number {
   return Math.max(0, Math.min(1, 1 - phaseT / duration));
 }
 
+function frameIndex(progress: number, frameCount: number): number {
+  if (frameCount <= 1) {
+    return 0;
+  }
+  return clampIndex(Math.floor(progress * frameCount), frameCount);
+}
+
 function staticIdle(): BossSpriteLayer {
   return { body: BOSS_FRAMES.idle[0]! };
 }
@@ -42,7 +49,7 @@ export function pickBossSprite(boss: Boss): BossSpriteLayer {
 
   if (boss.attackPhase === 'windup') {
     const t = phaseProgress(boss.attackPhaseT, BOSS_CONFIG.windupRaiseDuration);
-    const idx = clampIndex(Math.floor(t * BOSS_FRAMES.windup.length), BOSS_FRAMES.windup.length);
+    const idx = frameIndex(t, BOSS_FRAMES.windup.length);
     return { body: frameAt(BOSS_FRAMES.windup, idx) };
   }
 
@@ -52,7 +59,7 @@ export function pickBossSprite(boss: Boss): BossSpriteLayer {
 
   if (boss.attackPhase === 'slam') {
     const t = phaseProgress(boss.attackPhaseT, BOSS_CONFIG.slamDuration);
-    const idx = clampIndex(Math.floor(t * BOSS_FRAMES.slam.length), BOSS_FRAMES.slam.length);
+    const idx = frameIndex(t, BOSS_FRAMES.slam.length);
     return { body: frameAt(BOSS_FRAMES.slam, idx) };
   }
 
@@ -62,7 +69,7 @@ export function pickBossSprite(boss: Boss): BossSpriteLayer {
 
   if (boss.attackPhase === 'recover') {
     const t = phaseProgress(boss.attackPhaseT, BOSS_CONFIG.recoverDuration);
-    const idx = clampIndex(Math.floor(t * BOSS_FRAMES.recover.length), BOSS_FRAMES.recover.length);
+    const idx = frameIndex(t, BOSS_FRAMES.recover.length);
     return { body: frameAt(BOSS_FRAMES.recover, idx) };
   }
 

@@ -3,6 +3,7 @@ import {
   DIFFICULTY_CONFIG,
   encounterComplexity,
   isEnemySegmentKind,
+  isGateFollowupKind,
   isGateSegmentKind,
   pickEnemyGroupSize,
   scaledSpawnInterval,
@@ -23,6 +24,7 @@ import type { WorldSegment } from '../world/worldState';
 import { acquireSegment, recycleSegment } from '../world/worldState';
 import { type GateGenerationMode } from './GateGenerator';
 import { clearGatesNearWorldZ, spawnGateChoice } from './GateSystem';
+import { tryScheduleBossFromKills } from './BossSystem';
 import { minEnemySpawnZ, pickSpawnLane, spawnEnemyGroup } from './SpawnSystem';
 
 const OPENING = DIFFICULTY_CONFIG.opening;
@@ -402,6 +404,9 @@ function materializeSegment(state: GameState, segment: WorldSegment, rng: () => 
     const extra = Math.max(0, waveGroupCount(state.distance) - (spawned > 0 ? 1 : 0));
     segment.waveRemaining = extra;
     segment.waveTimer = spawned > 0 ? scaledSpawnInterval(state.distance) : COMBAT_CONFIG.spawnRetryDelay;
+  } else if (isGateFollowupKind(segment.kind)) {
+    segment.waveRemaining = 1;
+    segment.waveTimer = DIFFICULTY_CONFIG.gateFollowupDelay;
   }
 }
 
@@ -429,7 +434,10 @@ function tickEnemyWaves(state: GameState, dt: number, rng: () => number): void {
   const live = activeSegments(state);
   for (let i = 0; i < live.length; i += 1) {
     const segment = live[i]!;
-    if (!segment.materialized || !isEnemySegmentKind(segment.kind) || segment.waveRemaining <= 0) {
+    if (!segment.materialized || segment.waveRemaining <= 0) {
+      continue;
+    }
+    if (!isEnemySegmentKind(segment.kind) && !isGateFollowupKind(segment.kind)) {
       continue;
     }
     if (state.distance > segment.startDistance + segment.length) {
@@ -496,6 +504,7 @@ export function updateWorld(
   const roll = resolveRng(state, rng);
   recyclePassedSegments(state);
   state.worldFrontier = Math.max(state.worldFrontier, state.distance);
+  tryScheduleBossFromKills(state);
   resumeAfterBoss(state, roll);
   fillLookahead(state, roll);
   materializeDueSegments(state, roll);

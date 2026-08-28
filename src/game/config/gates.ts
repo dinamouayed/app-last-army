@@ -13,8 +13,8 @@ export const GATE_CONFIG = {
   /** Half-width of the visible panel in world units (within one lane). */
   gateHalfWidth: 0.42,
   firstGateDistance: 48,
-  minGateSpacing: 72,
-  maxGateSpacing: 118,
+  minGateSpacing: 56,
+  maxGateSpacing: 78,
   spawnAhead: 54,
   minSpawnAhead: 38,
   spawnRetryDelay: 0.5,

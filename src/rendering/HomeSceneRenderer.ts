@@ -1,5 +1,6 @@
 import type { SkCanvas } from '@shopify/react-native-skia';
 
+import { ARMY_CONFIG } from '../game/config/army';
 import { GAME_CONFIG } from '../game/config/game';
 import { playerWorldZ } from '../game/math/camera';
 import type { GameState } from '../game/types';
@@ -72,6 +73,7 @@ export function drawHomeScene(
       cameraZ,
       width,
       height,
+      { scaleMul: ARMY_CONFIG.visualScale },
     );
   }
 }

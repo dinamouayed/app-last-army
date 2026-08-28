@@ -269,21 +269,6 @@ function drawOneBoss(
         alpha,
       );
 
-  if (boss.hitFlash > 0 && !boss.dying) {
-    const flash = Math.min(1, boss.hitFlash / BOSS_CONFIG.hitFlashDuration);
-    resources.paints.hitFlash.setAlphaf(alpha * 0.28 * flash);
-    canvas.drawOval(
-      {
-        x: point.screenX - layout.width * 0.28,
-        y: layout.headY,
-        width: layout.width * 0.56,
-        height: layout.height * 0.72,
-      },
-      resources.paints.hitFlash,
-    );
-    resources.paints.hitFlash.setAlphaf(1);
-  }
-
   if (!boss.dying) {
     drawBossHealthBar(
       canvas,

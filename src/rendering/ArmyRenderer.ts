@@ -77,7 +77,9 @@ export function drawArmy(
     const isLeader = drawOrder === leaderIndex;
     const rank = frontIndices.indexOf(drawOrder);
     const scaleMul =
-      formationMul * crowdScaleMultiplier(rank >= 0 ? rank : drawOrder, isLeader, slot.depth);
+      ARMY_CONFIG.visualScale *
+      formationMul *
+      crowdScaleMultiplier(rank >= 0 ? rank : drawOrder, isLeader, slot.depth);
     const slotLean = lean * (isLeader ? 1 : 0.65);
 
     drawSoldierAt(
@@ -105,7 +107,7 @@ export function drawArmy(
     }
     const progress = visual.t / ARMY_CONFIG.soldierDeathDuration;
     const alpha = 1 - progress;
-    const scaleMul = formationMul * (1 - progress * 0.35);
+    const scaleMul = ARMY_CONFIG.visualScale * formationMul * (1 - progress * 0.35);
 
     drawSoldierAt(
       canvas,

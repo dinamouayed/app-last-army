@@ -1,5 +1,6 @@
 import type { SkCanvas } from '@shopify/react-native-skia';
 
+import { ARMY_CONFIG } from '../game/config/army';
 import { GAME_CONFIG } from '../game/config/game';
 import { worldToScreen } from '../game/math/camera';
 import type { GameState } from '../game/types';
@@ -34,8 +35,8 @@ export function drawProjectiles(
       height,
       GAME_CONFIG.camera,
     );
-    const fromY = from.screenY - muzzleScreenLift(from.scale);
-    const toY = to.screenY - muzzleScreenLift(to.scale);
+    const fromY = from.screenY - muzzleScreenLift(from.scale, ARMY_CONFIG.visualScale);
+    const toY = to.screenY - muzzleScreenLift(to.scale, ARMY_CONFIG.visualScale);
     const trailW = Math.max(2.4, 4.2 * to.scale);
     const coreW = Math.max(1.2, 2.1 * to.scale);
 

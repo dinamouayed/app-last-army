@@ -27,6 +27,8 @@ export function GameScreen({ onGameOver, onExit }: GameScreenProps) {
     hasChangedLane: false,
     difficulty: 1,
     nextBossDistance: 0,
+    nextBossKillThreshold: 0,
+    enemiesKilled: 0,
     runSeed: 0,
     segmentKind: 'runway',
   });
@@ -74,7 +76,9 @@ export function GameScreen({ onGameOver, onExit }: GameScreenProps) {
       {__DEV__ ? (
         <Text style={styles.debug}>
           {Math.round(hud.fps)} FPS  d{hud.difficulty.toFixed(2)}  {hud.segmentKind}
-          {'\n'}boss {Math.max(0, Math.round(hud.nextBossDistance - hud.distance))}m  seed {hud.runSeed}
+          {'\n'}boss {hud.nextBossDistance > hud.distance
+            ? `${Math.round(hud.nextBossDistance - hud.distance)}m`
+            : `${Math.max(0, hud.nextBossKillThreshold - hud.enemiesKilled)} kills`}  seed {hud.runSeed}
         </Text>
       ) : null}
     </View>

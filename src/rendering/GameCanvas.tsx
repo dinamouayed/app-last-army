@@ -88,6 +88,8 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
           hasChangedLane: session.state.hasChangedLane,
           difficulty: difficultyFactor(session.state.distance),
           nextBossDistance: session.state.nextBossDistance,
+          nextBossKillThreshold: session.state.nextBossKillThreshold,
+          enemiesKilled: session.state.enemiesKilled,
           runSeed: session.state.runSeed,
           segmentKind: currentSegmentKind(session.state),
         });

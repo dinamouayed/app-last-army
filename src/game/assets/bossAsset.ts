@@ -12,19 +12,19 @@ export const BOSS_CELL = { w: 256, h: 256 } as const;
 
 export const BOSS_FRAMES = {
   idle: [
-    { x: 0, y: 0, w: 256, h: 256 },
+    { x: 0, y: 0, w: 512, h: 512 },
   ],
   windup: [
-    { x: 0, y: 256, w: 256, h: 256 },
-    { x: 0, y: 512, w: 256, h: 256 },
-    { x: 0, y: 768, w: 256, h: 256 },
+    { x: 0, y: 512, w: 512, h: 512 },
+    { x: 0, y: 1024, w: 512, h: 512 },
+    { x: 0, y: 1536, w: 512, h: 512 },
   ],
   slam: [
-    { x: 0, y: 1024, w: 256, h: 256 },
-    { x: 0, y: 1280, w: 256, h: 256 },
+    { x: 0, y: 2048, w: 512, h: 512 },
+    { x: 0, y: 2560, w: 512, h: 512 },
   ],
   recover: [
-    { x: 0, y: 1536, w: 256, h: 256 },
-    { x: 0, y: 1792, w: 256, h: 256 },
+    { x: 0, y: 3072, w: 512, h: 512 },
+    { x: 0, y: 3584, w: 512, h: 512 },
   ],
 } as const satisfies Record<string, readonly BossFrameRect[]>;

@@ -6,22 +6,29 @@ import { WEAPONS } from '../config/weapons';
 import { createGameState } from '../engine/GameState';
 import { createEmptyGate } from '../entities/gates';
 import { playerWorldZ } from '../math/camera';
-import { applyProjectileBossHit, killBoss, scheduleFirstBoss, spawnBoss, spawnBossForDev, updateBoss } from './BossSystem';
+import { applyProjectileBossHit, killBoss, spawnBoss, spawnBossForDev, tryScheduleBossFromKills, updateBoss } from './BossSystem';
 import { resolveProjectileCollisions } from './CollisionSystem';
 import { clearGatesNearWorldZ } from './GateSystem';
 import { updateSpawn } from './SpawnSystem';
 import { fireCurrentWeapon } from './ShootingSystem';
-import { updateWorld } from './WorldGenerator';
+import { debugQueueSegment, updateWorld } from './WorldGenerator';
 
 describe('boss spawning', () => {
-  it('schedules the first boss at the configured distance', () => {
+  it('does not schedule the first boss until enough enemies are killed', () => {
     const state = createGameState();
-    expect(state.nextBossDistance).toBe(BOSS_CONFIG.firstBossDistance);
+    expect(state.nextBossDistance).toBe(0);
+    expect(state.nextBossKillThreshold).toBe(BOSS_CONFIG.firstBossKills);
+    state.distance = 800;
+    updateBoss(state, 0);
+    expect(state.boss.active).toBe(false);
   });
 
-  it('spawns a boss when distance reaches nextBossDistance', () => {
+  it('spawns a boss when distance reaches the armed nextBossDistance', () => {
     const state = createGameState();
-    state.distance = BOSS_CONFIG.firstBossDistance;
+    state.enemiesKilled = BOSS_CONFIG.firstBossKills;
+    tryScheduleBossFromKills(state);
+    expect(state.nextBossDistance).toBeGreaterThan(state.distance);
+    state.distance = state.nextBossDistance;
     updateBoss(state, 0);
     expect(state.boss.active).toBe(true);
     expect(state.boss.maxHp).toBe(bossMaxHpForDistance(state.distance));
@@ -80,13 +87,17 @@ describe('boss and gate separation', () => {
     );
   });
 
-  it('defers first boss when it would overlap the next gate distance', () => {
+  it('defers an armed boss when it would overlap the next gate distance', () => {
     const state = createGameState();
-    state.nextGateDistance = BOSS_CONFIG.firstBossDistance + 20;
-    scheduleFirstBoss(state);
-    expect(state.nextBossDistance).toBe(
-      state.nextGateDistance + BOSS_CONFIG.minGateDistanceSeparation,
-    );
+    for (const segment of state.segments) {
+      segment.active = false;
+    }
+    state.worldFrontier = 0;
+    debugQueueSegment(state, 'GateChoice', 10, 4);
+    state.enemiesKilled = BOSS_CONFIG.firstBossKills;
+    tryScheduleBossFromKills(state);
+    expect(state.nextGateDistance).toBe(10);
+    expect(state.nextBossDistance).toBe(10 + BOSS_CONFIG.minGateDistanceSeparation);
   });
 
   it('does not spawn gates while a boss is active', () => {
@@ -99,6 +110,9 @@ describe('boss and gate separation', () => {
 
   it('keeps upcoming gate encounters away from the scheduled boss', () => {
     const state = createGameState(7);
+    state.enemiesKilled = BOSS_CONFIG.firstBossKills;
+    tryScheduleBossFromKills(state);
+    updateWorld(state, 0, () => 0.5);
     const approach = state.segments.find((segment) => segment.active && segment.kind === 'BossApproach');
     expect(approach).toBeDefined();
     expect(approach!.startDistance + approach!.length).toBeCloseTo(state.nextBossDistance, 0);
@@ -173,7 +187,13 @@ describe('boss combat', () => {
     expect(state.boss.dying).toBe(true);
     updateBoss(state, BOSS_CONFIG.deathDuration);
     expect(state.boss.active).toBe(false);
-    expect(state.nextBossDistance).toBe(state.distance + BOSS_CONFIG.bossInterval);
+    expect(state.nextBossDistance).toBe(0);
+    expect(state.nextBossKillThreshold).toBe(state.enemiesKilled + BOSS_CONFIG.bossKillInterval);
+    tryScheduleBossFromKills(state);
+    expect(state.nextBossDistance).toBe(0);
+    state.enemiesKilled = state.nextBossKillThreshold;
+    tryScheduleBossFromKills(state);
+    expect(state.nextBossDistance).toBeGreaterThan(state.distance);
   });
 
   it('consumes projectiles that hit the boss', () => {

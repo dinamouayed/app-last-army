@@ -46,8 +46,8 @@ function paintsForKit(resources: RenderResources, kit: SoldierKit): SoldierPaint
   };
 }
 
-export function muzzleScreenLift(scale: number): number {
-  return Math.abs(SOLDIER_MUZZLE.localY) * GAME_CONFIG.soldierDrawScale * scale;
+export function muzzleScreenLift(scale: number, visualScale = 1): number {
+  return Math.abs(SOLDIER_MUZZLE.localY) * GAME_CONFIG.soldierDrawScale * visualScale * scale;
 }
 
 function drawSoldierLocal(

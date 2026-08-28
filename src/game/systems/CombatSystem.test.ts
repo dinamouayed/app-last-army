@@ -70,6 +70,7 @@ describe('basic enemy combat', () => {
     applyProjectileHit(state, 0, WEAPONS.pistol.damage);
     expect(enemy!.hp).toBeLessThanOrEqual(0);
     expect(enemy!.dying).toBe(true);
+    expect(state.enemiesKilled).toBe(1);
     expect(countActive(state.particles)).toBeGreaterThan(0);
   });
 
