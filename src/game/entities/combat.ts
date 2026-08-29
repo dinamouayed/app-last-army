@@ -1,5 +1,5 @@
 import type { EnemyId, EnemyBehaviorState } from '../config/enemies';
-import type { WeaponId } from '../config/weapons';
+import type { WeaponId, WeaponUpgradeTiers } from '../config/weapons';
 import type { LaneIndex } from '../types';
 
 export interface Projectile {
@@ -49,6 +49,7 @@ export interface Particle {
 export interface CombatState {
   weaponId: WeaponId;
   unlockedWeapons: WeaponId[];
+  weaponUpgradeTiers: WeaponUpgradeTiers;
   fireAccumulator: number;
   muzzleFlash: number;
   contactPulse: number;

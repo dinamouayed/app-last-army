@@ -7,7 +7,10 @@ import {
 import { getContactEnemyOffsetXs } from '../army/contactFiring';
 import { COMBAT_CONFIG } from '../config/combat';
 import { GAME_CONFIG } from '../config/game';
-import { getWeapon } from '../config/weapons';
+import {
+  getEffectiveWeapon,
+  getWeaponUpgradeTier,
+} from '../config/weapons';
 import { acquireEntity } from '../entities/combat';
 import type { Projectile } from '../entities/combat';
 import { playerWorldZ } from '../math/camera';
@@ -73,7 +76,10 @@ export function fireCurrentWeapon(
   state: GameState,
   rng: () => number = Math.random,
 ): Projectile | null {
-  const weapon = getWeapon(state.weaponId);
+  const weapon = getEffectiveWeapon(
+    state.weaponId,
+    getWeaponUpgradeTier(state.weaponUpgradeTiers, state.weaponId),
+  );
   const origins = getArmyFiringOrigins(state.formationSlots, state.armySize, {
     contactOffsetX: getContactEnemyOffsetXs(state),
   });
@@ -150,7 +156,10 @@ export function updateShooting(state: GameState, dt: number): void {
     return;
   }
 
-  const weapon = getWeapon(state.weaponId);
+  const weapon = getEffectiveWeapon(
+    state.weaponId,
+    getWeaponUpgradeTier(state.weaponUpgradeTiers, state.weaponId),
+  );
   const interval = 1 / (weapon.fireRate * armyFireRateMultiplier(state.armySize));
   state.fireAccumulator += dt;
   while (state.fireAccumulator >= interval) {

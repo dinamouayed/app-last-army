@@ -1,5 +1,7 @@
 export type WeaponId = 'pistol' | 'smg' | 'shotgun' | 'machineGun';
 
+export type WeaponUpgradeTiers = Record<WeaponId, number>;
+
 export interface WeaponConfig {
   id: WeaponId;
   name: string;
@@ -57,41 +59,97 @@ export const WEAPONS = {
   },
 } as const satisfies Record<WeaponId, WeaponConfig>;
 
+/** Per-tier power scaling when cycling back to an already-unlocked weapon. */
+export const WEAPON_UPGRADE_CONFIG = {
+  damagePerTier: 0.15,
+  fireRatePerTier: 0.1,
+  /** Extra barrel HP multiplier per upgrade tier offered. */
+  barrelCostPerTier: 0.35,
+} as const;
+
 export const STARTING_WEAPON: WeaponId = 'pistol';
+
+export function createEmptyWeaponUpgradeTiers(): WeaponUpgradeTiers {
+  return {
+    pistol: 0,
+    smg: 0,
+    shotgun: 0,
+    machineGun: 0,
+  };
+}
 
 export function getWeapon(id: WeaponId): WeaponConfig {
   return WEAPONS[id];
+}
+
+export function getWeaponUpgradeTier(tiers: WeaponUpgradeTiers, id: WeaponId): number {
+  return tiers[id] ?? 0;
+}
+
+export function getEffectiveWeapon(id: WeaponId, upgradeTier: number): WeaponConfig {
+  const base = WEAPONS[id];
+  if (upgradeTier <= 0) {
+    return base;
+  }
+  const damageMul = 1 + upgradeTier * WEAPON_UPGRADE_CONFIG.damagePerTier;
+  const fireRateMul = 1 + upgradeTier * WEAPON_UPGRADE_CONFIG.fireRatePerTier;
+  return {
+    ...base,
+    damage: Math.max(1, Math.round(base.damage * damageMul)),
+    fireRate: base.fireRate * fireRateMul,
+  };
+}
+
+export function weaponDisplayName(id: WeaponId, upgradeTier: number): string {
+  const base = WEAPONS[id].name;
+  if (upgradeTier <= 0) {
+    return base;
+  }
+  return `${base} +${upgradeTier}`;
 }
 
 export function weaponTier(id: WeaponId): number {
   return WEAPON_PROGRESSION.indexOf(id);
 }
 
-export function nextUnlockableWeapon(current: WeaponId): WeaponId | null {
-  const tier = weaponTier(current);
-  if (tier < 0 || tier >= WEAPON_PROGRESSION.length - 1) {
-    return null;
-  }
-  return WEAPON_PROGRESSION[tier + 1] ?? null;
+/** Next weapon in the fixed cycle — wraps from machine gun back to pistol. */
+export function pickNextBarrelWeapon(currentWeaponId: WeaponId): WeaponId {
+  const index = weaponTier(currentWeaponId);
+  const nextIndex = (index + 1) % WEAPON_PROGRESSION.length;
+  return WEAPON_PROGRESSION[nextIndex] ?? 'smg';
 }
 
-const BARREL_WEAPON_POOL = WEAPON_PROGRESSION.filter((id) => id !== 'pistol');
+export function nextUnlockableWeapon(current: WeaponId): WeaponId {
+  return pickNextBarrelWeapon(current);
+}
 
-/** Next weapon gate offer — unowned weapons first, then repeats for endless upgrades. */
+/** Upgrade tier the barrel will grant (0 = first unlock of that weapon). */
+export function nextBarrelUpgradeTier(
+  unlocked: readonly WeaponId[],
+  tiers: WeaponUpgradeTiers,
+  weaponId: WeaponId,
+): number {
+  if (!unlocked.includes(weaponId)) {
+    return 0;
+  }
+  return getWeaponUpgradeTier(tiers, weaponId) + 1;
+}
+
+export function isWeaponUpgradeUnlock(unlocked: readonly WeaponId[], weaponId: WeaponId): boolean {
+  return unlocked.includes(weaponId);
+}
+
+/** @deprecated Use pickNextBarrelWeapon — kept for call-site migration. */
 export function pickWeaponForBarrelGate(
   unlocked: readonly WeaponId[],
-  rng: () => number = Math.random,
+  _rng: () => number = Math.random,
+  currentWeaponId: WeaponId = 'pistol',
 ): WeaponId {
-  for (let i = 0; i < WEAPON_PROGRESSION.length; i += 1) {
-    const id = WEAPON_PROGRESSION[i]!;
-    if (id !== 'pistol' && !unlocked.includes(id)) {
-      return id;
-    }
-  }
-  const index = Math.floor(rng() * BARREL_WEAPON_POOL.length);
-  return BARREL_WEAPON_POOL[Math.min(index, BARREL_WEAPON_POOL.length - 1)] ?? 'smg';
+  void unlocked;
+  return pickNextBarrelWeapon(currentWeaponId);
 }
 
+/** @deprecated Use isWeaponUpgradeUnlock */
 export function isRepeatWeaponUnlock(unlocked: readonly WeaponId[], weaponId: WeaponId): boolean {
-  return unlocked.includes(weaponId);
+  return isWeaponUpgradeUnlock(unlocked, weaponId);
 }

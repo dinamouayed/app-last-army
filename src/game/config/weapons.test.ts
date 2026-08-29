@@ -1,10 +1,12 @@
 import {
+  getEffectiveWeapon,
   nextUnlockableWeapon,
-  pickWeaponForBarrelGate,
+  pickNextBarrelWeapon,
+  nextBarrelUpgradeTier,
   WEAPON_PROGRESSION,
   WEAPONS,
   weaponTier,
-} from '../config/weapons';
+} from './weapons';
 
 describe('weapons config', () => {
   it('defines all four weapon tiers', () => {
@@ -19,11 +21,16 @@ describe('weapons config', () => {
     }
   });
 
-  it('progresses unlock order from pistol to machine gun', () => {
+  it('cycles unlock order and wraps back to pistol', () => {
     expect(nextUnlockableWeapon('pistol')).toBe('smg');
     expect(nextUnlockableWeapon('smg')).toBe('shotgun');
     expect(nextUnlockableWeapon('shotgun')).toBe('machineGun');
-    expect(nextUnlockableWeapon('machineGun')).toBeNull();
+    expect(nextUnlockableWeapon('machineGun')).toBe('pistol');
+  });
+
+  it('offers the next weapon based on the equipped weapon', () => {
+    expect(pickNextBarrelWeapon('pistol')).toBe('smg');
+    expect(pickNextBarrelWeapon('machineGun')).toBe('pistol');
   });
 
   it('ranks weapons by tier', () => {
@@ -32,16 +39,18 @@ describe('weapons config', () => {
     expect(weaponTier('shotgun')).toBeLessThan(weaponTier('machineGun'));
   });
 
-  it('keeps offering weapons after all tiers are unlocked', () => {
-    const all = ['pistol', 'smg', 'shotgun', 'machineGun'] as const;
-    const picked = pickWeaponForBarrelGate(all, () => 0.5);
-    expect(['smg', 'shotgun', 'machineGun']).toContain(picked);
+  it('computes the upgrade tier a barrel will grant', () => {
+    const tiers = { pistol: 0, smg: 0, shotgun: 0, machineGun: 0 };
+    expect(nextBarrelUpgradeTier(['pistol'], tiers, 'smg')).toBe(0);
+    expect(nextBarrelUpgradeTier(['pistol', 'smg'], tiers, 'smg')).toBe(1);
+    expect(nextBarrelUpgradeTier(['pistol', 'smg', 'shotgun', 'machineGun'], tiers, 'pistol')).toBe(1);
   });
 
-  it('prioritizes unowned weapons in order', () => {
-    expect(pickWeaponForBarrelGate(['pistol'], () => 0)).toBe('smg');
-    expect(pickWeaponForBarrelGate(['pistol', 'smg'], () => 0)).toBe('shotgun');
-    expect(pickWeaponForBarrelGate(['pistol', 'smg', 'shotgun'], () => 0)).toBe('machineGun');
+  it('scales weapon stats on upgrade tiers', () => {
+    const base = WEAPONS.smg;
+    const upgraded = getEffectiveWeapon('smg', 2);
+    expect(upgraded.damage).toBeGreaterThan(base.damage);
+    expect(upgraded.fireRate).toBeGreaterThan(base.fireRate);
   });
 
   it('gives shotgun multiple pellets', () => {
@@ -49,7 +58,7 @@ describe('weapons config', () => {
     expect(WEAPONS.shotgun.spread).toBeGreaterThan(0);
   });
 
-  it('keeps each unlock tier stronger than the previous at equal army size', () => {
+  it('keeps each base unlock tier stronger than the previous at equal army size', () => {
     const origins = 2;
     const dps = (id: (typeof WEAPON_PROGRESSION)[number]) => {
       const weapon = WEAPONS[id];
@@ -62,5 +71,11 @@ describe('weapons config', () => {
       const next = WEAPON_PROGRESSION[i]!;
       expect(dps(next)).toBeGreaterThan(dps(prev));
     }
+  });
+
+  it('keeps an upgraded weapon stronger than its base version', () => {
+    const base = getEffectiveWeapon('pistol', 0);
+    const upgraded = getEffectiveWeapon('pistol', 1);
+    expect(upgraded.damage * upgraded.fireRate).toBeGreaterThan(base.damage * base.fireRate);
   });
 });

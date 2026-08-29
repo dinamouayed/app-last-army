@@ -1,10 +1,11 @@
 import { scaleGateValue, scaleShootableInitialValue } from '../config/difficulty';
 import { GATE_CONFIG, type GateOperation } from '../config/gates';
-import { scaledUnlockCost } from '../config/weaponUnlocks';
+import { scaledBarrelUnlockCost } from '../config/weaponUnlocks';
 import {
-  isRepeatWeaponUnlock,
-  pickWeaponForBarrelGate,
+  pickNextBarrelWeapon,
+  nextBarrelUpgradeTier,
   type WeaponId,
+  type WeaponUpgradeTiers,
 } from '../config/weapons';
 import type { LaneIndex } from '../types';
 
@@ -135,14 +136,10 @@ function draftWeaponChoice(
   weaponId: WeaponId,
   distance: number,
   unlocked: readonly WeaponId[],
+  upgradeTiers: WeaponUpgradeTiers,
 ): GateChoiceDraft {
-  let cost = scaledUnlockCost(
-    weaponId as Exclude<WeaponId, 'pistol'>,
-    distance,
-  );
-  if (isRepeatWeaponUnlock(unlocked, weaponId)) {
-    cost = Math.floor(cost * 1.35);
-  }
+  const upgradeTier = nextBarrelUpgradeTier(unlocked, upgradeTiers, weaponId);
+  const cost = scaledBarrelUnlockCost(weaponId, distance, upgradeTier);
   return {
     lane,
     kind: 'weapon',
@@ -267,7 +264,9 @@ function softenDominantChoice(
 
 function maybeInjectWeaponGate(
   choices: GateChoiceDraft[],
+  currentWeaponId: WeaponId,
   unlocked: readonly WeaponId[],
+  upgradeTiers: WeaponUpgradeTiers,
   distance: number,
   rng: () => number,
   mode: GateGenerationMode,
@@ -281,10 +280,16 @@ function maybeInjectWeaponGate(
     return choices;
   }
 
-  const weaponId = pickWeaponForBarrelGate(unlocked, rng);
+  const weaponId = pickNextBarrelWeapon(currentWeaponId);
   const next = choices.map((choice) => ({ ...choice }));
   const replaceIndex = Math.floor(rng() * next.length);
-  next[replaceIndex] = draftWeaponChoice(next[replaceIndex]!.lane, weaponId, distance, unlocked);
+  next[replaceIndex] = draftWeaponChoice(
+    next[replaceIndex]!.lane,
+    weaponId,
+    distance,
+    unlocked,
+    upgradeTiers,
+  );
 
   if (!isSurvivableSet(next, 1)) {
     return choices;
@@ -299,7 +304,9 @@ function draftRecoverySet(lanes: LaneIndex[], armySize: number, rng: () => numbe
 /** Build 2–3 lane gate choices that are survivable and not obviously unfair. */
 export function generateGateChoices(
   armySize: number,
+  currentWeaponId: WeaponId,
   unlockedWeapons: readonly WeaponId[],
+  weaponUpgradeTiers: WeaponUpgradeTiers,
   distance: number,
   rng: () => number = Math.random,
   mode: GateGenerationMode = 'standard',
@@ -313,7 +320,15 @@ export function generateGateChoices(
 
   let choices = lanes.map((lane) => draftMathChoice(lane, rng, distance, mode));
 
-  choices = maybeInjectWeaponGate(choices, unlockedWeapons, distance, rng, mode);
+  choices = maybeInjectWeaponGate(
+    choices,
+    currentWeaponId,
+    unlockedWeapons,
+    weaponUpgradeTiers,
+    distance,
+    rng,
+    mode,
+  );
 
   if (!isSurvivableSet(choices, armySize)) {
     choices = rebalanceChoices(choices, armySize, rng, distance);

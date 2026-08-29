@@ -4,7 +4,7 @@ import { COMBAT_CONFIG } from '../config/combat';
 import { GAME_CONFIG } from '../config/game';
 import { createGateRuntimeState } from '../entities/gates';
 import { createBossRuntimeState } from '../entities/boss';
-import { STARTING_WEAPON } from '../config/weapons';
+import { STARTING_WEAPON, createEmptyWeaponUpgradeTiers } from '../config/weapons';
 import { laneIndexToX } from '../math/lanes';
 import type { GameState } from '../types';
 import { scheduleFirstGate } from '../systems/GateSystem';
@@ -36,6 +36,7 @@ export function createGameState(seed?: number): GameState {
     dyingVisuals: createDyingVisualPool(),
     weaponId: STARTING_WEAPON,
     unlockedWeapons: ['pistol'],
+    weaponUpgradeTiers: createEmptyWeaponUpgradeTiers(),
     fireAccumulator: 0,
     muzzleFlash: 0,
     contactPulse: 0,

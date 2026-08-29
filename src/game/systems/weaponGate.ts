@@ -38,7 +38,9 @@ export function equipWeapon(state: GameState, weaponId: WeaponId): void {
 }
 
 export function registerWeaponUnlock(state: GameState, weaponId: WeaponId): void {
-  if (!state.unlockedWeapons.includes(weaponId)) {
-    state.unlockedWeapons.push(weaponId);
+  if (state.unlockedWeapons.includes(weaponId)) {
+    state.weaponUpgradeTiers[weaponId] += 1;
+    return;
   }
+  state.unlockedWeapons.push(weaponId);
 }

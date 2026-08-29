@@ -79,7 +79,9 @@ function spawnGateGroup(
 
   const choices = generateGateChoices(
     state.armySize,
+    state.weaponId,
     state.unlockedWeapons,
+    state.weaponUpgradeTiers,
     state.distance,
     rng,
     mode,
