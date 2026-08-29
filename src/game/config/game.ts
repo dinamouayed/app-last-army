@@ -11,9 +11,9 @@ export const GAME_CONFIG = {
   maxForwardSpeed: 28,
   /**
    * Characteristic distance of the ease-out ramp (~63% of start→max).
-   * Still climbing at 1500; near the cap around 5000.
+   * Still climbing at 5000; near the cap around 10000.
    */
-  speedRampDistance: 2200,
+  speedRampDistance: 4350,
   laneLerpSpeed: 18,
   swipeThresholdPx: 52,
   swipeHintDuration: 2.6,
