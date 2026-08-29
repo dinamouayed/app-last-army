@@ -26,8 +26,14 @@ FRAME_SOURCES: dict[str, list[str]] = {
     "recover": ["boss-recover.png", "boss-idle.png"],
 }
 
-ATLAS_CELL = 512
+# Native source frames are 1024px. Packing at 512 made the boss soft on
+# iPhone 3x: 256 logical points × 3 = 768 physical px, upscaled from 512.
+ATLAS_CELL = 1024
 DISPLAY_CELL = 256
+# Transparent inset so cubic sampling cannot bleed into the next cell.
+CELL_PAD = 2
+# Stay within a common GPU max-texture of 4096 on a side.
+MAX_ATLAS_DIM = 4096
 MAGENTA_T0 = 22.0
 MAGENTA_T1 = 85.0
 
@@ -151,9 +157,22 @@ def isolate_subject(img: Image.Image) -> Image.Image:
 def load_frame(name: str) -> Image.Image:
     img = Image.open(resolve_source(name)).convert("RGBA")
     isolated = isolate_subject(img)
-    if isolated.size != (ATLAS_CELL, ATLAS_CELL):
-        isolated = isolated.resize((ATLAS_CELL, ATLAS_CELL), Image.Resampling.LANCZOS)
-    return isolated
+    inner = ATLAS_CELL - CELL_PAD * 2
+    if isolated.size != (inner, inner):
+        isolated = isolated.resize((inner, inner), Image.Resampling.LANCZOS)
+    cell = Image.new("RGBA", (ATLAS_CELL, ATLAS_CELL), (0, 0, 0, 0))
+    cell.paste(isolated, (CELL_PAD, CELL_PAD), isolated)
+    return cell
+
+
+def atlas_grid(frame_count: int) -> tuple[int, int]:
+    cols = min(frame_count, max(1, MAX_ATLAS_DIM // ATLAS_CELL))
+    rows = (frame_count + cols - 1) // cols
+    if cols * ATLAS_CELL > MAX_ATLAS_DIM or rows * ATLAS_CELL > MAX_ATLAS_DIM:
+        raise ValueError(
+            f"Atlas {cols}x{rows} at {ATLAS_CELL}px exceeds {MAX_ATLAS_DIM}px",
+        )
+    return cols, rows
 
 
 def main() -> None:
@@ -169,20 +188,25 @@ def main() -> None:
     cell_w = ATLAS_CELL
     cell_h = ATLAS_CELL
     total_frames = sum(len(v) for v in frames.values())
-    atlas = Image.new("RGBA", (cell_w, cell_h * total_frames), (0, 0, 0, 0))
+    cols, rows = atlas_grid(total_frames)
+    atlas = Image.new("RGBA", (cell_w * cols, cell_h * rows), (0, 0, 0, 0))
 
     rects: dict[str, list[dict[str, int]]] = {k: [] for k in FRAME_SOURCES}
-    y = 0
+    index = 0
     for group in FRAME_SOURCES:
         subdir = BOSS_DIR / group
         if subdir.exists():
             shutil.rmtree(subdir)
         subdir.mkdir(parents=True, exist_ok=True)
         for i, frame in enumerate(frames[group], start=1):
-            atlas.paste(frame, (0, y), frame)
-            rects[group].append({"x": 0, "y": y, "w": cell_w, "h": cell_h})
+            col = index % cols
+            row = index // cols
+            x = col * cell_w
+            y = row * cell_h
+            atlas.paste(frame, (x, y), frame)
+            rects[group].append({"x": x, "y": y, "w": cell_w, "h": cell_h})
             frame.save(subdir / f"boss_{group}_{i:02d}.png")
-            y += cell_h
+            index += 1
 
     BOSS_DIR.mkdir(parents=True, exist_ok=True)
     atlas.save(BOSS_DIR / "boss-atlas.png")
@@ -215,7 +239,10 @@ def main() -> None:
 
     (ROOT / "src" / "game" / "assets" / "bossAsset.ts").write_text("\n".join(ts_lines), encoding="utf-8")
 
-    print(f"Atlas {cell_w}x{cell_h * total_frames}, {total_frames} frames, cell {cell_w}x{cell_h}")
+    print(
+        f"Atlas {atlas.size[0]}x{atlas.size[1]} ({cols}x{rows}), "
+        f"{total_frames} frames, cell {cell_w}x{cell_h}",
+    )
 
 
 if __name__ == "__main__":

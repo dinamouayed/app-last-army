@@ -44,7 +44,7 @@ export const BOSS_CONFIG = {
   deathParticleCount: 18,
   unlockPulseDuration: 0.55,
   slamShakeDuration: 0.22,
-  /** Screen scale for boss display cells (atlas is 512px, drawn at 256 logical). */
+  /** Screen scale for boss display cells (atlas is 1024px, drawn at 256 logical). */
   visualScale: 1.12,
   idleAnimFps: 6,
   slamBaseDamage: 12,

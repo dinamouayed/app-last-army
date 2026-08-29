@@ -29,19 +29,22 @@ function drawAtlasFrame(
   alpha: number,
 ): { headX: number; headY: number; width: number; height: number } {
   const drawScale = screenScale * BOSS_CONFIG.visualScale;
-  const width = BOSS_CELL.w * drawScale;
-  const height = BOSS_CELL.h * drawScale;
-  const x = feetX - width * 0.5;
-  const y = feetY - height;
+  const width = Math.round(BOSS_CELL.w * drawScale);
+  const height = Math.round(BOSS_CELL.h * drawScale);
+  const x = Math.round(feetX - width * 0.5);
+  const y = Math.round(feetY - height);
 
   const paint = Skia.Paint();
   paint.setAntiAlias(true);
   paint.setAlphaf(alpha);
 
-  canvas.drawImageRect(
+  // Catmull-Rom cubic — sharper than default bilinear on retina up/downscale.
+  canvas.drawImageRectCubic(
     atlas,
     Skia.XYWHRect(frame.x, frame.y, frame.w, frame.h),
     Skia.XYWHRect(x, y, width, height),
+    0,
+    0.5,
     paint,
   );
   paint.dispose();
@@ -235,8 +238,8 @@ function drawOneBoss(
 
   const sprite = pickBossSprite(boss);
   const drawScale = screenScale * BOSS_CONFIG.visualScale;
-  const bodyWidth = BOSS_CELL.w * drawScale;
-  const bodyHeight = BOSS_CELL.h * drawScale;
+  const bodyWidth = Math.round(BOSS_CELL.w * drawScale);
+  const bodyHeight = Math.round(BOSS_CELL.h * drawScale);
 
   resources.paints.bossShadow.setAlphaf(alpha * 0.35);
   canvas.drawOval(
