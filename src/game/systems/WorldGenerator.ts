@@ -370,6 +370,8 @@ function bestRewardLane(state: GameState): LaneIndex {
       score = gate.value;
     } else if (gate.operation === 'multiply') {
       score = state.armySize * Math.max(0, gate.value - 1);
+    } else if (gate.operation === 'divide') {
+      score = Math.floor(state.armySize / Math.max(1, gate.value)) - state.armySize;
     } else {
       score = -gate.value;
     }

@@ -118,6 +118,9 @@ export function formatGateLabel(gate: Gate): string {
   if (gate.operation === 'subtract') {
     return `-${gate.value}`;
   }
+  if (gate.operation === 'divide') {
+    return `÷${gate.value}`;
+  }
   return `×${gate.value}`;
 }
 
@@ -138,7 +141,7 @@ export function isNegativeGate(gate: Gate): boolean {
   if (gate.shootable) {
     return gate.signedValue < 0;
   }
-  return gate.operation === 'subtract';
+  return gate.operation === 'subtract' || gate.operation === 'divide';
 }
 
 export function weaponGateProgress(gate: Gate): number {

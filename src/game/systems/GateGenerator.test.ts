@@ -4,11 +4,14 @@ import { createEmptyWeaponUpgradeTiers } from '../config/weapons';
 import { applyGateArithmetic, generateGateChoices } from './GateGenerator';
 
 describe('applyGateArithmetic', () => {
-  it('adds, subtracts and multiplies with a zero floor', () => {
+  it('adds, subtracts, multiplies and divides with a zero floor', () => {
     expect(applyGateArithmetic(20, 'add', 15)).toBe(35);
     expect(applyGateArithmetic(20, 'subtract', 8)).toBe(12);
     expect(applyGateArithmetic(20, 'multiply', 2)).toBe(40);
+    expect(applyGateArithmetic(20, 'divide', 2)).toBe(10);
+    expect(applyGateArithmetic(21, 'divide', 2)).toBe(10);
     expect(applyGateArithmetic(3, 'subtract', 8)).toBe(0);
+    expect(applyGateArithmetic(1, 'divide', 2)).toBe(0);
   });
 });
 
@@ -101,6 +104,25 @@ describe('generateGateChoices', () => {
         expect(choice.operation === 'add' || choice.operation === 'multiply').toBe(true);
         expect(applyGateArithmetic(3, choice.operation!, choice.value!)).toBeGreaterThan(0);
       }
+    }
+  });
+
+  it('can offer ÷2 once the army is large enough', () => {
+    let found = false;
+    for (let i = 0; i < 120; i += 1) {
+      const choices = generate(40, 200, () => (i * 0.11) % 1);
+      if (choices.some((choice) => choice.kind === 'math' && choice.operation === 'divide')) {
+        found = true;
+        break;
+      }
+    }
+    expect(found).toBe(true);
+  });
+
+  it('does not offer divide gates to a tiny army', () => {
+    for (let i = 0; i < 40; i += 1) {
+      const choices = generate(4, 80, () => (i * 0.17) % 1);
+      expect(choices.some((choice) => choice.operation === 'divide')).toBe(false);
     }
   });
 

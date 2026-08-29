@@ -208,6 +208,20 @@ describe('enemy engagement combat', () => {
     expect(enemy.x).toBeLessThan(startX);
     expect(enemy.behavior === 'engaging' || enemy.behavior === 'attacking').toBe(true);
   });
+
+  it('removes a percentage of a large army on each contact tick', () => {
+    const state = createGameState();
+    state.armySize = 100;
+    state.armyX = laneIndexToX(1, GAME_CONFIG.laneSpacing);
+    refreshFormation(state);
+    const playerZ = playerWorldZ(state.distance, GAME_CONFIG.camera);
+    const enemy = spawnBasicEnemyAt(state, state.armyX, playerZ + 0.3)!;
+    enemy.behavior = 'attacking';
+    enemy.attackTimer = 0;
+
+    updateEnemies(state, 0.01);
+    expect(state.armySize).toBe(98);
+  });
 });
 
 describe('game over detection', () => {

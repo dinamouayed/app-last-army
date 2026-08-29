@@ -1,4 +1,4 @@
-export type GateOperation = 'add' | 'subtract' | 'multiply';
+export type GateOperation = 'add' | 'subtract' | 'multiply' | 'divide';
 
 export interface GateOperationPool {
   operation: GateOperation;
@@ -23,10 +23,13 @@ export const GATE_CONFIG = {
   /** Prefer 3-lane choices; occasionally spawn 2. */
   threeLaneChoiceWeight: 0.78,
   operationPools: [
-    { operation: 'add', weight: 0.42, values: [5, 8, 10, 12, 15, 20, 25, 30, 40] },
-    { operation: 'subtract', weight: 0.33, values: [3, 5, 8, 10, 12, 15] },
-    { operation: 'multiply', weight: 0.25, values: [2, 3] },
+    { operation: 'add', weight: 0.36, values: [5, 8, 10, 12, 15, 20, 25, 30, 40] },
+    { operation: 'subtract', weight: 0.26, values: [3, 5, 8, 10, 12, 15] },
+    { operation: 'multiply', weight: 0.22, values: [2, 3] },
+    { operation: 'divide', weight: 0.16, values: [2] },
   ] satisfies GateOperationPool[],
+  /** ÷N is lethal on tiny armies; only offer it once the crowd can survive a half. */
+  minArmyForDivide: 8,
   /** When rebalancing, favor these positive templates. */
   rescueAddValues: [10, 15, 20, 25, 30] as const,
   rescueMultiplyValues: [2] as const,

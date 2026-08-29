@@ -329,7 +329,9 @@ function activateMathGate(state: GameState, gate: Gate): void {
   gate.fadeT = 0;
 
   const positive =
-    gate.shootable ? gate.signedValue >= 0 : gate.operation === 'add' || gate.operation === 'multiply';
+    gate.shootable
+      ? gate.signedValue >= 0
+      : gate.operation === 'add' || gate.operation === 'multiply';
   state.gatePulse = GATE_CONFIG.activationFeedbackDuration;
   state.gatePulseX = gate.x;
   state.gatePulseZ = gate.z;
@@ -346,6 +348,8 @@ function activateMathGate(state: GameState, gate: Gate): void {
     addSoldiers(state, gate.value);
   } else if (gate.operation === 'subtract') {
     removeSoldiers(state, gate.value, gate.x, gate.z);
+  } else if (gate.operation === 'divide') {
+    multiplyArmySize(state, 1 / Math.max(1, gate.value), gate.x, gate.z);
   } else {
     multiplyArmySize(state, gate.value, gate.x, gate.z);
   }

@@ -10,7 +10,7 @@ import {
   snapEnemyToArmyContact,
 } from '../army/footprint';
 import { COMBAT_CONFIG } from '../config/combat';
-import { ENEMIES, getEnemyConfig } from '../config/enemies';
+import { ENEMIES, enemyContactDamage, getEnemyConfig } from '../config/enemies';
 import { GAME_CONFIG } from '../config/game';
 import { scaledEnemyApproachSpeed, scaledEnemyEngagingSpeed, scaledEnemyHp } from '../config/difficulty';
 import { acquireEntity, livingEnemyCount } from '../entities/combat';
@@ -320,7 +320,7 @@ function updateAttackingEnemy(
   if (enemy.attackTimer <= 0) {
     removeSoldiersAtContact(
       state,
-      config.armyDamagePerAttack,
+      enemyContactDamage(state.armySize, config),
       enemy.x,
       enemy.z,
     );

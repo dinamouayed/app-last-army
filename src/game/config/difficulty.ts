@@ -237,7 +237,7 @@ export function scaleGateValue(
   base: number,
   distance: number,
 ): number {
-  if (operation === 'multiply') {
+  if (operation === 'multiply' || operation === 'divide') {
     return base;
   }
   const multiplier =

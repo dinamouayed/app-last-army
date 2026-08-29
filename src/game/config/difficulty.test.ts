@@ -19,6 +19,7 @@ describe('difficulty scaling', () => {
     expect(scaledEnemyHp(0)).toBe(ENEMIES.basic.maxHp);
     expect(scaleGateValue('add', 10, 0)).toBe(10);
     expect(scaleGateValue('multiply', 2, 900)).toBe(2);
+    expect(scaleGateValue('divide', 2, 900)).toBe(2);
     expect(weaponUnlockCostMultiplier(0)).toBe(1);
   });
 

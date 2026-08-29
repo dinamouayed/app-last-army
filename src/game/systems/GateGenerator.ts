@@ -22,8 +22,10 @@ export interface GateChoiceDraft {
   weaponHp?: number;
 }
 
-function pickWeightedOperation(rng: () => number): GateOperation {
-  const pools = GATE_CONFIG.operationPools;
+function pickWeightedOperation(rng: () => number, armySize: number): GateOperation {
+  const pools = GATE_CONFIG.operationPools.filter(
+    (pool) => pool.operation !== 'divide' || armySize >= GATE_CONFIG.minArmyForDivide,
+  );
   let total = 0;
   for (let i = 0; i < pools.length; i += 1) {
     total += pools[i]!.weight;
@@ -67,6 +69,10 @@ export function applyGateArithmetic(
   if (operation === 'subtract') {
     return Math.max(0, armySize - value);
   }
+  if (operation === 'divide') {
+    const divisor = Math.max(1, value);
+    return Math.max(0, Math.floor(armySize / divisor));
+  }
   return Math.max(0, Math.floor(armySize * value));
 }
 
@@ -97,7 +103,7 @@ function maybeMakeShootable(
   distance: number,
   mode: GateGenerationMode,
 ): GateChoiceDraft {
-  if (choice.kind === 'weapon' || choice.operation === 'multiply') {
+  if (choice.kind === 'weapon' || choice.operation === 'multiply' || choice.operation === 'divide') {
     return choice;
   }
   const force = mode === 'shootable' || (mode === 'mixed' && rng() < 0.55);
@@ -120,8 +126,9 @@ function draftMathChoice(
   rng: () => number,
   distance: number,
   mode: GateGenerationMode,
+  armySize: number,
 ): GateChoiceDraft {
-  const operation = pickWeightedOperation(rng);
+  const operation = pickWeightedOperation(rng, armySize);
   const choice: GateChoiceDraft = {
     lane,
     kind: 'math',
@@ -176,13 +183,15 @@ function isObviouslyUnfair(choices: GateChoiceDraft[], armySize: number): boolea
     return true;
   }
 
-  const sorted = [...results].sort((a, b) => b - a);
+  const growth = results.filter((result) => result > armySize);
+  if (growth.length < 2) {
+    return false;
+  }
+
+  const sorted = [...growth].sort((a, b) => b - a);
   const best = sorted[0] ?? 0;
   const second = sorted[1] ?? best;
-  if (mathChoices.length >= 2 && best > 0 && second > 0 && best >= second * 2.35 && best >= armySize + 8) {
-    return true;
-  }
-  return false;
+  return best >= second * 2.35 && best >= armySize + 8;
 }
 
 function rescueChoice(
@@ -249,7 +258,7 @@ function softenDominantChoice(
   }
 
   const next = choices.map((choice) => ({ ...choice }));
-  const replacement = draftMathChoice(top.choice.lane, rng, distance, mode);
+  const replacement = draftMathChoice(top.choice.lane, rng, distance, mode, armySize);
   next[top.index] = replacement;
   if (!isSurvivableSet(next, armySize) || isObviouslyUnfair(next, armySize)) {
     next[top.index] = {
@@ -318,7 +327,7 @@ export function generateGateChoices(
     return draftRecoverySet(lanes, armySize, rng, distance);
   }
 
-  let choices = lanes.map((lane) => draftMathChoice(lane, rng, distance, mode));
+  let choices = lanes.map((lane) => draftMathChoice(lane, rng, distance, mode, armySize));
 
   choices = maybeInjectWeaponGate(
     choices,

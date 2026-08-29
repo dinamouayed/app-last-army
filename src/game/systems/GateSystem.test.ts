@@ -5,7 +5,7 @@ import { visibleSoldierCount } from '../army/formation';
 import { GATE_CONFIG } from '../config/gates';
 import { GAME_CONFIG } from '../config/game';
 import { createGameState } from '../engine/GameState';
-import { createEmptyGate, livingGateCount } from '../entities/gates';
+import { createEmptyGate, formatGateLabel, isNegativeGate, isPositiveGate, livingGateCount } from '../entities/gates';
 import { playerWorldZ } from '../math/camera';
 import { asphaltLaneCenterX } from '../math/roadBounds';
 import { laneIndexToX } from '../math/lanes';
@@ -103,6 +103,22 @@ describe('gate activation', () => {
 
     expect(state.armySize).toBe(12);
     expect(state.visibleCount).toBe(12);
+  });
+
+  it('applies ÷N once and floors the result', () => {
+    const state = createGameState();
+    state.armySize = 21;
+    refreshFormation(state);
+    const gate = makeGate(1, 'divide', 2, playerWorldZ(state.distance, GAME_CONFIG.camera) + 2);
+
+    applyGateToArmy(state, gate);
+
+    expect(state.armySize).toBe(10);
+    expect(state.gatePulsePositive).toBe(false);
+    expect(state.status).toBe('running');
+    expect(formatGateLabel(gate)).toBe('÷2');
+    expect(isNegativeGate(gate)).toBe(true);
+    expect(isPositiveGate(gate)).toBe(false);
   });
 
   it('uses the evolved signed value for shootable gates', () => {

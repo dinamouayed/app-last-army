@@ -452,6 +452,10 @@ Examples:
 ×2
 ```
 
+```text
+÷2
+```
+
 When the army passes through a gate, apply the operation to armySize.
 
 Examples:
@@ -466,6 +470,10 @@ Examples:
 
 ```text
 20 soldiers × 2 = 40
+```
+
+```text
+20 soldiers ÷ 2 = 10
 ```
 
 armySize can never become negative.
@@ -569,6 +577,8 @@ High HP.
 Slow speed.
 
 Enemies reaching the army kill soldiers.
+
+Enemies stay in front of the army and steer toward it rather than wrapping behind the formation. Contact damage scales with current army size so a huge crowd cannot tank indefinitely, but a single missed enemy should not wipe the run.
 
 Enemy stats must scale with distance.
 
