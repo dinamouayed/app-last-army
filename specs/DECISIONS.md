@@ -43,7 +43,7 @@ A large army must not be a valid "stand still" strategy.
 
 - Basic-enemy contact damage uses a percentage of current army size (with a 1-soldier floor), matching the boss slam idea at a smaller fraction (2%).
 - Math gates may offer `÷N` (initially `÷2`) once the army is large enough to survive a half. Grow-vs-shrink choices are valid, not "obviously unfair".
-- Enemies stay in front of the army and steer toward the crowd. They must not wrap behind the formation — that looks wrong on a large army and over-punishes a missed kill.
+- Enemies stay in their spawn lane and in front of the army. They must not wrap behind the formation. Projectiles only hit the selected lane — including enemies already piled at the front. Clearing a melee stack requires a swipe onto that lane.
 
 This overrides the flat 1-soldier contact tick.
 
@@ -54,7 +54,7 @@ This overrides the flat 1-soldier contact tick.
 Standing still must become unsafe even with a large army.
 
 - Unshootable TNT crates occupy 1 or 2 lanes (never 3). Hitting a crate wipes the army. They appear after the opening stretch.
-- Hitting a crate plays a short explosion (fireball, shockwave, screen flash) before the game-over screen.
+- Hitting a crate plays a short local explosion (fireball, shockwave) before the game-over screen. No full-screen tint and no red panel flash.
 - Fast charger enemies appear from 1000 m. They stay in their spawn lane, rush the army, and deal heavier contact damage. They must be faced by switching into their lane. Missed chargers in another lane despawn instead of wrapping behind the formation.
 
 ---
@@ -73,7 +73,7 @@ Shooting a math gate keeps raising its signed value with no maximum. The origina
 
 ## 2026-08-29 — Opening red enemies
 
-Early red enemies are larger and take more shots to drop so the first stretch is not empty.
+Early red enemies are larger and take more shots to drop so the first stretch is not empty. Their near-camera draw scale is compressed so a melee pile does not balloon to twice the size of the blue army.
 
 ---
 
@@ -96,3 +96,5 @@ A generic circle or abstract player marker is not acceptable, even during protot
 Move toward a colorful casual-mobile-game aesthetic.
 
 Avoid dark developer-prototype visuals.
+
+Never use a sudden full-screen tint, colored rectangle, or gate-shaped panel as hit / death / explosion feedback. Those read as debug overlays. Effects stay local to the object (particles, fireball, shockwave, shake) and ease in and out.

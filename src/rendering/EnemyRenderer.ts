@@ -1,7 +1,7 @@
 import type { SkCanvas } from '@shopify/react-native-skia';
 
 import { COMBAT_CONFIG } from '../game/config/combat';
-import { ENEMIES } from '../game/config/enemies';
+import { enemyDrawScaleMul, enemyPerspectiveScale } from '../game/config/enemies';
 import { GAME_CONFIG } from '../game/config/game';
 import { worldToScreen } from '../game/math/camera';
 import type { Enemy } from '../game/entities/combat';
@@ -91,11 +91,18 @@ function drawOneEnemy(
     state.distance,
     width,
     height,
-    { scaleMul: ENEMIES[enemy.kind].visualScale },
+    { scaleMul: enemyDrawScaleMul(enemy.kind, point.scale) },
   );
 
   if (!enemy.dying) {
-    drawHpBar(canvas, resources, enemy, point.screenX, point.screenY, point.scale);
+    drawHpBar(
+      canvas,
+      resources,
+      enemy,
+      point.screenX,
+      point.screenY,
+      enemyPerspectiveScale(point.scale),
+    );
   }
 
   resources.paints.enemyUniform.setAlphaf(1);

@@ -112,4 +112,26 @@ describe('projectile enemy lane lock', () => {
     expect(projectile!.active).toBe(true);
     expect(enemy!.hp).toBe(enemy!.maxHp);
   });
+
+  it('does not hit a melee enemy on another lane', () => {
+    const state = createGameState();
+    state.armySize = 20;
+    state.armyX = 0;
+    const enemy = spawnBasicEnemyAt(state, 1, 12);
+    expect(enemy).not.toBeNull();
+    enemy!.behavior = 'attacking';
+    enemy!.lane = 2;
+
+    const projectile = fireCurrentWeapon(state);
+    expect(projectile).not.toBeNull();
+    projectile!.x = 0;
+    projectile!.prevX = 0;
+    projectile!.prevZ = 8;
+    projectile!.z = 16;
+
+    resolveProjectileCollisions(state);
+
+    expect(projectile!.active).toBe(true);
+    expect(enemy!.hp).toBe(enemy!.maxHp);
+  });
 });

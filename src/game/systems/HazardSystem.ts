@@ -36,10 +36,6 @@ function spawnTntExplosion(state: GameState, x: number, z: number): void {
   state.explosionBurstX = x;
   state.explosionBurstZ = z;
   state.armyShake = Math.max(state.armyShake, HAZARD_CONFIG.explosionShakeDuration);
-  state.gatePulse = HAZARD_CONFIG.activationFeedbackDuration;
-  state.gatePulseX = x;
-  state.gatePulseZ = z;
-  state.gatePulsePositive = false;
 
   const count = HAZARD_CONFIG.explosionParticleCount;
   for (let i = 0; i < count; i += 1) {

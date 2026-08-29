@@ -37,11 +37,11 @@ export const ENEMIES = {
     attackInterval: 0.8,
     engagementStartDistance: 4.5,
     nearCombatDepth: 1.2,
-    lateralSteeringSpeed: 1.35,
-    maxLateralSpeed: 0.85,
-    laneLocked: false,
+    lateralSteeringSpeed: 0,
+    maxLateralSpeed: 0,
+    laneLocked: true,
     laneMissDespawn: 0,
-    visualScale: 1.22,
+    visualScale: 1.28,
   },
   charger: {
     id: 'charger',
@@ -64,6 +64,29 @@ export const ENEMIES = {
 
 export function getEnemyConfig(id: EnemyId): EnemyConfig {
   return ENEMIES[id];
+}
+
+/**
+ * Perspective grows as 1/depth. Uncompressed, a red soldier at the army
+ * is more than twice the size of a blue one. Soft-cap the last stretch.
+ */
+export const ENEMY_DRAW = {
+  nearScaleCap: 0.48,
+  nearScaleEase: 0.12,
+} as const;
+
+export function enemyPerspectiveScale(perspectiveScale: number): number {
+  const cap = ENEMY_DRAW.nearScaleCap;
+  if (perspectiveScale <= cap) {
+    return perspectiveScale;
+  }
+  return cap + (perspectiveScale - cap) * ENEMY_DRAW.nearScaleEase;
+}
+
+/** `scaleMul` for SoldierRenderer — visualScale with near-camera compression. */
+export function enemyDrawScaleMul(kind: EnemyId, perspectiveScale: number): number {
+  const compressed = enemyPerspectiveScale(perspectiveScale);
+  return ENEMIES[kind].visualScale * (compressed / Math.max(perspectiveScale, 0.001));
 }
 
 /** Contact ticks scale with army size so a huge crowd cannot tank forever. */

@@ -213,7 +213,7 @@ describe('enemy engagement combat', () => {
     expect(enemy.active).toBe(true);
   });
 
-  it('steers a near-miss enemy toward the army instead of passing through', () => {
+  it('keeps a missed basic enemy in its spawn lane instead of seeking the army', () => {
     const state = createGameState();
     state.armySize = 12;
     state.armyX = laneIndexToX(0, GAME_CONFIG.laneSpacing);
@@ -226,8 +226,8 @@ describe('enemy engagement combat', () => {
       updateEnemies(state, 1 / 60);
     }
 
-    expect(enemy.x).toBeLessThan(startX);
-    expect(enemy.behavior === 'engaging' || enemy.behavior === 'attacking').toBe(true);
+    expect(Math.abs(enemy.x - startX)).toBeLessThan(0.08);
+    expect(enemy.active).toBe(true);
   });
 
   it('removes a percentage of a large army on each contact tick', () => {

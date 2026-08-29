@@ -96,7 +96,7 @@ function findBestEnemyHit(
       continue;
     }
     const inContact = isEnemyInArmyContact(enemy, footprint);
-    if (!inContact && !onSameLane(x, enemy.x)) {
+    if (!onSameLane(x, enemy.x)) {
       continue;
     }
     const t = segmentCircleHitT(

@@ -60,7 +60,6 @@ function drawSlamBurst(
 function resetExplosionPaints(resources: RenderResources): void {
   resources.paints.muzzleFlash.setAlphaf(1);
   resources.paints.muzzleCore.setAlphaf(1);
-  resources.paints.hitFlash.setAlphaf(1);
   resources.paints.contact.setAlphaf(1);
   resources.paints.particle.setAlphaf(1);
   resources.paints.gateNegative.setAlphaf(1);
@@ -96,14 +95,6 @@ function drawTntExplosion(
   const cx = point.screenX;
   const cy = point.screenY - lift;
   const s = point.scale;
-
-  if (t < 0.2) {
-    const flash = (1 - t / 0.2) * 0.32;
-    resources.paints.muzzleFlash.setAlphaf(flash);
-    canvas.drawRect({ x: 0, y: 0, width, height }, resources.paints.muzzleFlash);
-    resources.paints.hitFlash.setAlphaf(flash * 0.4);
-    canvas.drawRect({ x: 0, y: 0, width, height }, resources.paints.hitFlash);
-  }
 
   const scorchW = (26 + expand * 36) * s;
   resources.paints.hazardFillDark.setAlphaf(0.5 * fade);

@@ -580,7 +580,7 @@ Slow speed.
 
 Enemies reaching the army kill soldiers.
 
-Enemies stay in front of the army and steer toward it rather than wrapping behind the formation. Contact damage scales with current army size so a huge crowd cannot tank indefinitely, but a single missed enemy should not wipe the run.
+Enemies stay in their spawn lane and in front of the army rather than wrapping behind the formation. Contact damage scales with current army size so a huge crowd cannot tank indefinitely, but a single missed enemy should not wipe the run. The player must swipe onto an enemy's lane to shoot it, even when that enemy is already in contact with the army.
 
 ### Lane hazards
 

@@ -63,7 +63,9 @@ describe('contact firing', () => {
     for (let i = 0; i < 120; i += 1) {
       updateEnemies(state, 1 / 60);
     }
-    expect(enemy!.behavior === 'engaging' || enemy!.behavior === 'attacking').toBe(true);
+    expect(enemy!.behavior === 'engaging' || enemy!.behavior === 'attacking' || enemy!.behavior === 'approaching').toBe(
+      true,
+    );
 
     for (let i = 0; i < 8; i += 1) {
       updateShooting(state, 1 / 3);
@@ -78,6 +80,7 @@ describe('contact firing', () => {
       expect(firingCorridorContains(projectile.x, state.armyX)).toBe(true);
     }
     expect(state.armyX).toBeCloseTo(laneIndexToX(1, GAME_CONFIG.laneSpacing), 2);
+    expect(enemy!.hp).toBe(enemy!.maxHp);
   });
 
   it('does not send the volley down a brawler\'s distant lane', () => {
@@ -112,6 +115,7 @@ describe('contact firing', () => {
     resolveProjectileCollisions(state);
 
     expect(distant!.hp).toBe(distant!.maxHp);
+    expect(brawler!.hp).toBe(brawler!.maxHp);
   });
 
   it('still requires lane alignment for distant enemies', () => {

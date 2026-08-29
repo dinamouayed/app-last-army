@@ -3,6 +3,7 @@ import { GAME_CONFIG } from '../config/game';
 import type { Boss } from '../entities/boss';
 import type { Enemy } from '../entities/combat';
 import { playerWorldZ } from '../math/camera';
+import { nearestAsphaltLane } from '../math/roadBounds';
 import type { GameState } from '../types';
 
 export function buildArmyFootprintForState(state: GameState): FootprintSlice[] {
@@ -41,6 +42,9 @@ export function getContactEnemyOffsetXs(state: GameState): number[] {
       continue;
     }
     if (!isEnemyInArmyContact(enemy, footprint)) {
+      continue;
+    }
+    if (nearestAsphaltLane(enemy.x, GAME_CONFIG.camera) !== nearestAsphaltLane(state.armyX, GAME_CONFIG.camera)) {
       continue;
     }
     offsets.push(enemy.x - state.armyX);
