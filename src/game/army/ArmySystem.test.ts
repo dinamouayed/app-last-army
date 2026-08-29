@@ -15,6 +15,7 @@ import {
   createFormationBuffer,
   formationFrontWidth,
   maxFormationExtent,
+  visibleSoldierCount,
   wedgeRowWidth,
 } from '../army/formation';
 import {
@@ -28,6 +29,7 @@ import { laneIndexToX } from '../math/lanes';
 import { applyProjectileHit } from '../systems/CollisionSystem';
 import {
   spawnBasicEnemyAt,
+  spawnEnemyAt,
   updateEnemies,
 } from '../systems/EnemySystem';
 import { computeGroupSpawnX } from '../systems/SpawnSystem';
@@ -54,10 +56,29 @@ describe('wedge formation', () => {
     expect(formationFrontWidth(slots)).toBeLessThan(1.2);
   });
 
+  it('renders a denser crowd once the army is large', () => {
+    const slots = createFormationBuffer();
+    buildFormationSlots(GAME_CONFIG.maxVisibleSoldiers, slots);
+    const active = slots.filter((slot) => slot.active).length;
+    expect(active).toBe(GAME_CONFIG.maxVisibleSoldiers);
+    expect(visibleSoldierCount(800)).toBe(GAME_CONFIG.maxVisibleSoldiers);
+  });
+
+  it('spills a large army off the bottom of the screen', () => {
+    const slots = createFormationBuffer();
+    buildFormationSlots(GAME_CONFIG.maxVisibleSoldiers, slots);
+    const minZ = Math.min(
+      ...slots.filter((slot) => slot.active).map((slot) => slot.offsetZ),
+    );
+    expect(minZ).toBeLessThan(-2.8);
+  });
+
   it('grows depth before covering all lanes', () => {
     const slots = createFormationBuffer();
     buildFormationSlots(30, slots);
-    expect(maxFormationExtent(slots)).toBeGreaterThan(1);
+    const depths = slots.filter((slot) => slot.active).map((slot) => slot.depth);
+    expect(Math.max(...depths)).toBeGreaterThanOrEqual(4);
+    expect(maxFormationExtent(slots)).toBeGreaterThan(0.5);
   });
 });
 
@@ -221,6 +242,51 @@ describe('enemy engagement combat', () => {
 
     updateEnemies(state, 0.01);
     expect(state.armySize).toBe(98);
+  });
+
+  it('keeps a charger in its own lane instead of seeking the army', () => {
+    const state = createGameState();
+    state.armySize = 12;
+    state.armyX = laneIndexToX(0, GAME_CONFIG.laneSpacing);
+    refreshFormation(state);
+    const playerZ = playerWorldZ(state.distance, GAME_CONFIG.camera);
+    const enemy = spawnEnemyAt(
+      state,
+      laneIndexToX(2, GAME_CONFIG.laneSpacing),
+      playerZ + 2,
+      'charger',
+    )!;
+    const startX = enemy.x;
+
+    for (let i = 0; i < 90; i += 1) {
+      updateEnemies(state, 1 / 60);
+    }
+
+    expect(enemy.kind).toBe('charger');
+    expect(Math.abs(enemy.x - startX)).toBeLessThan(0.08);
+    expect(enemy.approachSpeed).toBeGreaterThan(ENEMIES.basic.approachSpeed);
+  });
+
+  it('despawns a missed charger without kill credit', () => {
+    const state = createGameState();
+    state.armySize = 4;
+    state.armyX = laneIndexToX(0, GAME_CONFIG.laneSpacing);
+    refreshFormation(state);
+    const playerZ = playerWorldZ(state.distance, GAME_CONFIG.camera);
+    const enemy = spawnEnemyAt(
+      state,
+      laneIndexToX(2, GAME_CONFIG.laneSpacing),
+      playerZ + 1.2,
+      'charger',
+    )!;
+    const killed = state.enemiesKilled;
+
+    for (let i = 0; i < 180; i += 1) {
+      updateEnemies(state, 1 / 60);
+    }
+
+    expect(enemy.active).toBe(false);
+    expect(state.enemiesKilled).toBe(killed);
   });
 });
 

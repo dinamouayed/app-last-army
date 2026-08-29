@@ -66,8 +66,9 @@ describe('basic enemy combat', () => {
     expect(enemy!.hp).toBe(ENEMIES.basic.maxHp - WEAPONS.pistol.damage);
     expect(enemy!.dying).toBe(false);
 
-    applyProjectileHit(state, 0, WEAPONS.pistol.damage);
-    applyProjectileHit(state, 0, WEAPONS.pistol.damage);
+    while (enemy!.hp > 0) {
+      applyProjectileHit(state, 0, WEAPONS.pistol.damage);
+    }
     expect(enemy!.hp).toBeLessThanOrEqual(0);
     expect(enemy!.dying).toBe(true);
     expect(state.enemiesKilled).toBe(1);

@@ -1,6 +1,12 @@
 import { armyFrontWorldZ } from '../army/footprint';
 import { COMBAT_CONFIG } from '../config/combat';
-import { isEnemySegmentKind, pickEnemyGroupSize, scaledSpawnInterval } from '../config/difficulty';
+import {
+  chargerSpawnChance,
+  isEnemySegmentKind,
+  pickEnemyGroupSize,
+  scaledSpawnInterval,
+} from '../config/difficulty';
+import type { EnemyId } from '../config/enemies';
 import { GAME_CONFIG } from '../config/game';
 import { playerWorldZ } from '../math/camera';
 import {
@@ -10,7 +16,7 @@ import {
 } from '../math/roadBounds';
 import type { GameState, LaneIndex } from '../types';
 import { isBossPresent } from '../entities/boss';
-import { livingEnemyCount, spawnBasicEnemyAt } from './EnemySystem';
+import { livingEnemyCount, spawnEnemyAt } from './EnemySystem';
 
 function enemyRoadMargin(): number {
   return COMBAT_CONFIG.enemyRoadMargin + COMBAT_CONFIG.enemyVisualHalfWidth;
@@ -48,7 +54,23 @@ export function minEnemySpawnZ(armyFrontZ: number): number {
 
 function resolveGroupMemberZ(baseZ: number, minZ: number, index: number, rng: () => number): number {
   const jitter = (rng() - 0.5) * 2 * COMBAT_CONFIG.spawnDepthSpread;
-  return Math.max(minZ, baseZ + jitter + index * 0.28);
+  return Math.max(minZ, baseZ + jitter + index * 0.48);
+}
+
+function pickGroupEnemyKind(
+  state: GameState,
+  index: number,
+  rng: () => number,
+  alreadyCharged: boolean,
+): EnemyId {
+  if (alreadyCharged || index > 0) {
+    return 'basic';
+  }
+  const chance = chargerSpawnChance(state.distance);
+  if (chance <= 0) {
+    return 'basic';
+  }
+  return rng() < chance ? 'charger' : 'basic';
 }
 
 export function spawnEnemyGroup(
@@ -63,6 +85,7 @@ export function spawnEnemyGroup(
   const centerX = asphaltLaneCenterX(lane, GAME_CONFIG.camera);
   const road = getRoadWorldBounds(GAME_CONFIG.camera, margin);
   let spawned = 0;
+  let spawnedCharger = false;
 
   for (let i = 0; i < count; i += 1) {
     const offset = (rng() - 0.5) * 2 * COMBAT_CONFIG.groupSpreadX;
@@ -75,11 +98,15 @@ export function spawnEnemyGroup(
     if (!positionIsClear(state, x, z)) {
       continue;
     }
-    const enemy = spawnBasicEnemyAt(state, x, z);
+    const kind = pickGroupEnemyKind(state, spawned, rng, spawnedCharger);
+    const enemy = spawnEnemyAt(state, x, z, kind);
     if (enemy) {
       enemy.lane = lane;
       enemy.x = x;
       spawned += 1;
+      if (kind === 'charger') {
+        spawnedCharger = true;
+      }
     }
   }
 

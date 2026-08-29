@@ -49,6 +49,40 @@ This overrides the flat 1-soldier contact tick.
 
 ---
 
+## 2026-08-29 — Lane hazards and chargers
+
+Standing still must become unsafe even with a large army.
+
+- Unshootable TNT crates occupy 1 or 2 lanes (never 3). Hitting a crate wipes the army. They appear after the opening stretch.
+- Hitting a crate plays a short explosion (fireball, shockwave, screen flash) before the game-over screen.
+- Fast charger enemies appear from 1000 m. They stay in their spawn lane, rush the army, and deal heavier contact damage. They must be faced by switching into their lane. Missed chargers in another lane despawn instead of wrapping behind the formation.
+
+---
+
+## 2026-08-29 — Denser visible army
+
+Player soldiers are drawn smaller, so the visible crowd cap is 220 and formation spacing is tighter. A huge army stretches off the bottom of the screen so the visible crowd is clearly not the whole army. Logical army size is unchanged; this is a representation change only.
+
+---
+
+## 2026-08-29 — Shootable gates have no value cap
+
+Shooting a math gate keeps raising its signed value with no maximum. The original +25 ceiling is removed: extra shots after +25 still count.
+
+---
+
+## 2026-08-29 — Opening red enemies
+
+Early red enemies are larger and take more shots to drop so the first stretch is not empty.
+
+---
+
+## 2026-08-29 — Enemy count vs distance
+
+Enemy group size and wave density scale with meters traveled, from a small opening up to a late-game cap. They do not scale with army size: skipping growth does not shrink the pressure that distance already earned.
+
+---
+
 ## 2026-08-24 — Player placeholder
 
 The player must always be visually recognizable as a soldier.

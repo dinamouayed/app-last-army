@@ -1,6 +1,7 @@
 import type { SkCanvas } from '@shopify/react-native-skia';
 
 import { COMBAT_CONFIG } from '../game/config/combat';
+import { ENEMIES } from '../game/config/enemies';
 import { GAME_CONFIG } from '../game/config/game';
 import { worldToScreen } from '../game/math/camera';
 import type { Enemy } from '../game/entities/combat';
@@ -54,13 +55,27 @@ function drawOneEnemy(
   canvas.translate(-point.screenX, -point.screenY);
 
   if (death > 0) {
-    resources.paints.enemyUniform.setAlphaf(1 - death);
-    resources.paints.enemyUniformDark.setAlphaf(1 - death);
-    resources.paints.enemyHelmet.setAlphaf(1 - death);
-    resources.paints.enemyPants.setAlphaf(1 - death);
+    const kitPaints =
+      enemy.kind === 'charger'
+        ? [
+            resources.paints.chargerUniform,
+            resources.paints.chargerUniformDark,
+            resources.paints.chargerHelmet,
+            resources.paints.chargerPants,
+          ]
+        : [
+            resources.paints.enemyUniform,
+            resources.paints.enemyUniformDark,
+            resources.paints.enemyHelmet,
+            resources.paints.enemyPants,
+          ];
+    for (let i = 0; i < kitPaints.length; i += 1) {
+      kitPaints[i]!.setAlphaf(1 - death);
+    }
   }
 
   const inMelee = enemy.behavior === 'attacking' && !enemy.dying;
+  const charger = enemy.kind === 'charger';
 
   drawSoldierAt(
     canvas,
@@ -68,13 +83,15 @@ function drawOneEnemy(
     {
       worldX: enemy.x,
       worldZ: enemy.z,
-      elapsed: inMelee ? 0 : state.elapsed,
+      elapsed: inMelee ? 0 : state.elapsed * (charger ? 1.7 : 1),
       stridePhase: inMelee ? 0 : enemy.id * 0.7,
-      kit: 'enemy',
+      lean: charger ? 0.18 : 0,
+      kit: charger ? 'charger' : 'enemy',
     },
     state.distance,
     width,
     height,
+    { scaleMul: ENEMIES[enemy.kind].visualScale },
   );
 
   if (!enemy.dying) {
@@ -85,6 +102,10 @@ function drawOneEnemy(
   resources.paints.enemyUniformDark.setAlphaf(1);
   resources.paints.enemyHelmet.setAlphaf(1);
   resources.paints.enemyPants.setAlphaf(1);
+  resources.paints.chargerUniform.setAlphaf(1);
+  resources.paints.chargerUniformDark.setAlphaf(1);
+  resources.paints.chargerHelmet.setAlphaf(1);
+  resources.paints.chargerPants.setAlphaf(1);
   canvas.restore();
 }
 

@@ -4,6 +4,7 @@ import { updateBoss } from './BossSystem';
 import { resolveProjectileEnemyCollisions } from './CollisionSystem';
 import { updateEnemies, updateParticles } from './EnemySystem';
 import { updateGates } from './GateSystem';
+import { updateHazards } from './HazardSystem';
 import { updateProjectiles } from './ProjectileSystem';
 import { updateShooting } from './ShootingSystem';
 import { updateWorld } from './WorldGenerator';
@@ -19,6 +20,7 @@ export function updateCombat(
   updateBoss(state, dt);
   updateWorld(state, dt, rng);
   updateGates(state, dt, rng);
+  updateHazards(state, dt);
   updateShooting(state, dt);
   updateProjectiles(state, dt);
   updateEnemies(state, dt);

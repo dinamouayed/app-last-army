@@ -43,10 +43,7 @@ export function applyHitToShootableGate(gate: Gate, hits = 1): GateEvolutionResu
 
   gate.damageBuffer += hits;
 
-  while (
-    gate.damageBuffer >= config.hitsPerStep &&
-    gate.signedValue < config.maxValue
-  ) {
+  while (gate.damageBuffer >= config.hitsPerStep) {
     gate.damageBuffer -= config.hitsPerStep;
     const previous = gate.signedValue;
     gate.signedValue += 1;

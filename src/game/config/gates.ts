@@ -37,7 +37,6 @@ export const GATE_CONFIG = {
   shootableGateWeight: 0.38,
   shootable: {
     initialValues: [-8, -10, -12, -15] as const,
-    maxValue: 25,
     /** Projectile impacts required before the signed value steps by +1. */
     hitsPerStep: 5,
     hitRadius: 0.4,

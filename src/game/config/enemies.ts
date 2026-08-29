@@ -1,4 +1,4 @@
-export type EnemyId = 'basic';
+export type EnemyId = 'basic' | 'charger';
 export type EnemyBehaviorState = 'approaching' | 'engaging' | 'attacking';
 
 export interface EnemyConfig {
@@ -18,15 +18,20 @@ export interface EnemyConfig {
   nearCombatDepth: number;
   lateralSteeringSpeed: number;
   maxLateralSpeed: number;
+  /** Stay in the spawn lane so the player must swipe to shoot them. */
+  laneLocked: boolean;
+  /** Seconds a missed lane-locked enemy waits at the front before despawning. */
+  laneMissDespawn: number;
+  visualScale: number;
 }
 
 export const ENEMIES = {
   basic: {
     id: 'basic',
-    maxHp: 36,
+    maxHp: 60,
     approachSpeed: 2.1,
     engagingForwardSpeed: 0.45,
-    collisionRadius: 0.38,
+    collisionRadius: 0.42,
     armyDamagePerAttack: 1,
     armyDamageFraction: 0.02,
     attackInterval: 0.8,
@@ -34,6 +39,26 @@ export const ENEMIES = {
     nearCombatDepth: 1.2,
     lateralSteeringSpeed: 1.35,
     maxLateralSpeed: 0.85,
+    laneLocked: false,
+    laneMissDespawn: 0,
+    visualScale: 1.22,
+  },
+  charger: {
+    id: 'charger',
+    maxHp: 14,
+    approachSpeed: 5.6,
+    engagingForwardSpeed: 1.55,
+    collisionRadius: 0.34,
+    armyDamagePerAttack: 2,
+    armyDamageFraction: 0.07,
+    attackInterval: 0.55,
+    engagementStartDistance: 5.2,
+    nearCombatDepth: 1.4,
+    lateralSteeringSpeed: 0,
+    maxLateralSpeed: 0,
+    laneLocked: true,
+    laneMissDespawn: 1.7,
+    visualScale: 0.88,
   },
 } as const satisfies Record<EnemyId, EnemyConfig>;
 

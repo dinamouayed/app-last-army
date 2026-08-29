@@ -1,4 +1,5 @@
 import { ARMY_CONFIG } from '../config/army';
+import { GAME_CONFIG } from '../config/game';
 import { hash01, hashRange } from '../math/hash';
 
 export interface FormationSlot {
@@ -71,6 +72,14 @@ export function wedgeRowSpacingX(depth: number): number {
   return ARMY_CONFIG.formationSpacingX * (1 + depth * ARMY_CONFIG.rearSpacingXScale);
 }
 
+/** Backward offset of a row. Large depths reach past the bottom of the screen. */
+export function wedgeRowOffsetZ(depth: number): number {
+  const stretched =
+    -depth * ARMY_CONFIG.formationSpacingZ * (1 + depth * ARMY_CONFIG.rearSpacingZScale);
+  const limit = -(GAME_CONFIG.camera.playerDepth - GAME_CONFIG.camera.zClip - 0.45);
+  return Math.max(stretched, limit);
+}
+
 /**
  * Forward-pointing wedge: tip at offsetZ ≈ 0 (toward horizon),
  * rear expands backward (negative offsetZ → bottom of screen).
@@ -96,14 +105,14 @@ export function buildFormationSlots(
 
   let placed = 0;
   let depth = 0;
-  const { formationSpacingZ, formationMaxDepth } = ARMY_CONFIG;
+  const { formationMaxDepth } = ARMY_CONFIG;
 
   while (placed < cappedCount && depth < formationMaxDepth) {
     const rowWidth = wedgeRowWidth(depth);
     const soldiersInRow = Math.min(rowWidth, cappedCount - placed);
     const spacingX = wedgeRowSpacingX(depth);
     const startCol = -(soldiersInRow - 1) / 2;
-    const offsetZ = -depth * formationSpacingZ;
+    const offsetZ = wedgeRowOffsetZ(depth);
 
     for (let col = 0; col < soldiersInRow; col += 1) {
       const slot = slots[placed];
@@ -115,8 +124,8 @@ export function buildFormationSlots(
       const baseX = (startCol + col) * spacingX;
 
       slot.active = true;
-      slot.offsetX = baseX + hashRange(index, -0.06, 0.06);
-      slot.offsetZ = offsetZ + hashRange(index + 37, -0.04, 0.04);
+      slot.offsetX = baseX + hashRange(index, -0.035, 0.035);
+      slot.offsetZ = offsetZ + hashRange(index + 37, -0.025, 0.025);
       slot.depth = depth;
       slot.variation = hash01(index + 71);
       slot.phase = hashRange(index + 113, 0, Math.PI * 2);

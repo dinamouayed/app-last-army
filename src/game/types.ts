@@ -1,6 +1,7 @@
 import type { CombatState } from './entities/combat';
 import type { BossRuntimeState } from './entities/boss';
 import type { GateRuntimeState } from './entities/gates';
+import type { HazardRuntimeState } from './entities/hazards';
 import type { WorldRuntimeState } from './world/worldState';
 import type { FormationSlot, DyingSoldierVisual } from './army/formation';
 import type { WeaponId } from './config/weapons';
@@ -9,7 +10,7 @@ export type LaneIndex = 0 | 1 | 2;
 
 export type GameStatus = 'running' | 'paused' | 'gameover';
 
-export interface GameState extends CombatState, GateRuntimeState, BossRuntimeState, WorldRuntimeState {
+export interface GameState extends CombatState, GateRuntimeState, BossRuntimeState, HazardRuntimeState, WorldRuntimeState {
   status: GameStatus;
   elapsed: number;
   distance: number;
@@ -26,6 +27,9 @@ export interface GameState extends CombatState, GateRuntimeState, BossRuntimeSta
   slamBurst: number;
   slamBurstX: number;
   slamBurstZ: number;
+  explosionBurst: number;
+  explosionBurstX: number;
+  explosionBurstZ: number;
   fireOriginIndex: number;
   dyingVisuals: DyingSoldierVisual[];
 }

@@ -10,6 +10,7 @@ import { drawArmy } from './ArmyRenderer';
 import { drawBoss } from './BossRenderer';
 import { drawCombatEffects } from './EffectsRenderer';
 import { drawEnemies } from './EnemyRenderer';
+import { drawHazards } from './HazardRenderer';
 import { drawGateActivationPulse, drawGates } from './GateRenderer';
 import { drawHomeScene } from './HomeSceneRenderer';
 import {
@@ -56,6 +57,7 @@ export function recordFrame(
 ): SkPicture {
   const canvas = beginFrame(resources, width, height);
   drawWorld(canvas, resources, state, width, height);
+  drawHazards(canvas, resources, state, width, height);
   drawGates(canvas, resources, state, width, height);
   drawEnemies(canvas, resources, state, width, height);
   drawBoss(canvas, resources, state, width, height);

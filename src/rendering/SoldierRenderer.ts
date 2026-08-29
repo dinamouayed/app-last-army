@@ -5,7 +5,7 @@ import { playerWorldZ, worldToScreen } from '../game/math/camera';
 import type { ScreenPoint } from '../game/types';
 import type { RenderResources } from './paints';
 
-export type SoldierKit = 'player' | 'enemy';
+export type SoldierKit = 'player' | 'enemy' | 'charger';
 
 export const SOLDIER_MUZZLE = {
   localX: 14,
@@ -30,6 +30,14 @@ interface SoldierPaints {
 }
 
 function paintsForKit(resources: RenderResources, kit: SoldierKit): SoldierPaints {
+  if (kit === 'charger') {
+    return {
+      uniform: resources.paints.chargerUniform,
+      uniformDark: resources.paints.chargerUniformDark,
+      pants: resources.paints.chargerPants,
+      helmet: resources.paints.chargerHelmet,
+    };
+  }
   if (kit === 'enemy') {
     return {
       uniform: resources.paints.enemyUniform,
@@ -198,6 +206,10 @@ export function drawSoldier(
     resources.paints.enemyUniformDark.setAlphaf(alpha);
     resources.paints.enemyPants.setAlphaf(alpha);
     resources.paints.enemyHelmet.setAlphaf(alpha);
+    resources.paints.chargerUniform.setAlphaf(alpha);
+    resources.paints.chargerUniformDark.setAlphaf(alpha);
+    resources.paints.chargerPants.setAlphaf(alpha);
+    resources.paints.chargerHelmet.setAlphaf(alpha);
     resources.paints.muzzleFlash.setAlphaf(alpha);
     resources.paints.muzzleCore.setAlphaf(alpha);
   }
@@ -224,6 +236,10 @@ export function drawSoldier(
     resources.paints.enemyUniformDark.setAlphaf(1);
     resources.paints.enemyPants.setAlphaf(1);
     resources.paints.enemyHelmet.setAlphaf(1);
+    resources.paints.chargerUniform.setAlphaf(1);
+    resources.paints.chargerUniformDark.setAlphaf(1);
+    resources.paints.chargerPants.setAlphaf(1);
+    resources.paints.chargerHelmet.setAlphaf(1);
     resources.paints.muzzleFlash.setAlphaf(1);
     resources.paints.muzzleCore.setAlphaf(1);
   }

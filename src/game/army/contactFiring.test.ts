@@ -25,8 +25,8 @@ describe('contact firing', () => {
     const playerZ = playerWorldZ(state.distance, GAME_CONFIG.camera);
     const enemy = spawnBasicEnemyAt(
       state,
-      laneIndexToX(2, GAME_CONFIG.laneSpacing),
-      playerZ + 0.25,
+      state.armyX + 0.45,
+      playerZ + 0.1,
     );
     expect(enemy).not.toBeNull();
     enemy!.behavior = 'attacking';

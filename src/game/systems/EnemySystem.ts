@@ -10,7 +10,7 @@ import {
   snapEnemyToArmyContact,
 } from '../army/footprint';
 import { COMBAT_CONFIG } from '../config/combat';
-import { ENEMIES, enemyContactDamage, getEnemyConfig } from '../config/enemies';
+import { enemyContactDamage, getEnemyConfig, type EnemyId } from '../config/enemies';
 import { GAME_CONFIG } from '../config/game';
 import { scaledEnemyApproachSpeed, scaledEnemyEngagingSpeed, scaledEnemyHp } from '../config/difficulty';
 import { acquireEntity, livingEnemyCount } from '../entities/combat';
@@ -85,17 +85,18 @@ function shouldBeginEngaging(
   return depthGap <= config.nearCombatDepth && footprintDist <= config.engagementStartDistance * 1.35;
 }
 
-export function spawnBasicEnemyAt(
+export function spawnEnemyAt(
   state: GameState,
   worldX: number,
   worldZ: number,
+  kind: EnemyId = 'basic',
 ): Enemy | null {
-  const config = ENEMIES.basic;
+  const config = getEnemyConfig(kind);
   const hp = scaledEnemyHp(state.distance, config.maxHp);
   const enemy = acquireEntity(state.enemies, COMBAT_CONFIG.maxEnemies, () => ({
     id: 0,
     active: false,
-    kind: 'basic' as const,
+    kind: 'basic' as EnemyId,
     lane: 1 as LaneIndex,
     x: 0,
     z: 0,
@@ -109,6 +110,7 @@ export function spawnBasicEnemyAt(
     attackTimer: 0,
     approachSpeed: config.approachSpeed,
     engagingForwardSpeed: config.engagingForwardSpeed,
+    ignoreTimer: 0,
   }));
   if (!enemy) {
     return null;
@@ -116,7 +118,7 @@ export function spawnBasicEnemyAt(
 
   enemy.id = nextId(state);
   enemy.active = true;
-  enemy.kind = 'basic';
+  enemy.kind = kind;
   enemy.x = clampWorldXToRoad(worldX, GAME_CONFIG.camera, enemyRoadMargin());
   enemy.lane = deriveLaneFromX(enemy.x);
   enemy.z = worldZ;
@@ -130,7 +132,16 @@ export function spawnBasicEnemyAt(
   enemy.attackTimer = config.attackInterval;
   enemy.approachSpeed = scaledEnemyApproachSpeed(state.distance, config.approachSpeed);
   enemy.engagingForwardSpeed = scaledEnemyEngagingSpeed(state.distance, config.engagingForwardSpeed);
+  enemy.ignoreTimer = 0;
   return enemy;
+}
+
+export function spawnBasicEnemyAt(
+  state: GameState,
+  worldX: number,
+  worldZ: number,
+): Enemy | null {
+  return spawnEnemyAt(state, worldX, worldZ, 'basic');
 }
 
 export function spawnBasicEnemy(
@@ -198,6 +209,9 @@ function applyLateralSteer(
   config: ReturnType<typeof getEnemyConfig>,
   strength = 1,
 ): void {
+  if (config.laneLocked || config.lateralSteeringSpeed <= 0) {
+    return;
+  }
   const dx = targetX - enemy.x;
   const steer = dx * config.lateralSteeringSpeed * strength * dt;
   const maxStep = config.maxLateralSpeed * dt;
@@ -216,7 +230,9 @@ function beginAttacking(
     enemy.radius,
     footprint,
   );
-  enemy.x = snapped.x;
+  if (!config.laneLocked) {
+    enemy.x = snapped.x;
+  }
   enemy.z = snapped.z;
   enemy.behavior = 'attacking';
   enemy.attackTimer = config.attackInterval * 0.35;
@@ -304,7 +320,7 @@ function updateAttackingEnemy(
     return;
   }
 
-  if (contactDist > enemy.radius * 0.65) {
+  if (contactDist > enemy.radius * 0.65 && !config.laneLocked) {
     const snapped = snapEnemyToArmyContact(
       enemy.x,
       enemy.z,
@@ -363,6 +379,22 @@ export function updateEnemies(state: GameState, dt: number): void {
 
     clampEnemyToRoad(enemy);
     keepEnemyAheadOfArmy(enemy, frontZ);
+
+    if (
+      config.laneLocked &&
+      config.laneMissDespawn > 0 &&
+      enemy.behavior !== 'attacking' &&
+      nearestFootprintDistance(enemy.x, enemy.z, footprint) > enemy.radius + 0.5
+    ) {
+      enemy.ignoreTimer += dt;
+      if (enemy.ignoreTimer >= config.laneMissDespawn) {
+        enemy.active = false;
+        continue;
+      }
+    } else {
+      enemy.ignoreTimer = 0;
+    }
+
     footprint = getArmyFootprint(state, playerZ);
   }
 }
@@ -370,6 +402,9 @@ export function updateEnemies(state: GameState, dt: number): void {
 export function updateParticles(state: GameState, dt: number): void {
   if (state.contactPulse > 0) {
     state.contactPulse = Math.max(0, state.contactPulse - dt);
+  }
+  if (state.explosionBurst > 0) {
+    state.explosionBurst = Math.max(0, state.explosionBurst - dt);
   }
 
   for (let i = 0; i < state.particles.length; i += 1) {

@@ -33,6 +33,7 @@ export interface Enemy {
   attackTimer: number;
   approachSpeed: number;
   engagingForwardSpeed: number;
+  ignoreTimer: number;
 }
 
 export interface Particle {
@@ -43,7 +44,7 @@ export interface Particle {
   vz: number;
   life: number;
   maxLife: number;
-  kind: 'default' | 'gatePositive' | 'gateNegative' | 'slam';
+  kind: 'default' | 'gatePositive' | 'gateNegative' | 'slam' | 'explosion';
 }
 
 export interface CombatState {

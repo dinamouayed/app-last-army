@@ -1,7 +1,7 @@
 import { ARMY_CONFIG } from '../config/army';
 import { circlesOverlap } from '../math/collision';
 import type { FormationSlot } from './formation';
-import { visibleSoldierCount, wedgeRowSpacingX, wedgeRowWidth } from './formation';
+import { visibleSoldierCount, wedgeRowOffsetZ, wedgeRowSpacingX, wedgeRowWidth } from './formation';
 
 export interface FootprintSlice {
   x: number;
@@ -21,7 +21,7 @@ export function buildArmyFootprint(
   }
 
   const slices: FootprintSlice[] = [];
-  const { formationSpacingZ, soldierCollisionRadius, formationMaxDepth } = ARMY_CONFIG;
+  const { soldierCollisionRadius, formationMaxDepth } = ARMY_CONFIG;
   let placed = 0;
   let depth = 0;
 
@@ -30,7 +30,7 @@ export function buildArmyFootprint(
     const soldiersInRow = Math.min(rowWidth, visible - placed);
     const spacingX = wedgeRowSpacingX(depth);
     const halfSpan = ((soldiersInRow - 1) / 2) * spacingX;
-    const offsetZ = -depth * formationSpacingZ;
+    const offsetZ = wedgeRowOffsetZ(depth);
     const rowRadius = halfSpan + soldierCollisionRadius;
 
     slices.push({

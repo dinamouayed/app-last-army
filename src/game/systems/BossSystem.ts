@@ -16,6 +16,7 @@ import { playerWorldZ } from '../math/camera';
 import { asphaltLaneCenterX } from '../math/roadBounds';
 import { recycleSegment } from '../world/worldState';
 import { clearGatesNearWorldZ } from './GateSystem';
+import { clearHazardsNearWorldZ } from './HazardSystem';
 import type { GameState } from '../types';
 
 function resolveBossSpawnDistance(state: GameState, candidate: number): number {
@@ -208,6 +209,7 @@ export function spawnBoss(
   boss.slamDamageApplied = false;
   boss.animTime = 0;
   clearGatesNearWorldZ(state, boss.z, BOSS_CONFIG.gateClearanceZ);
+  clearHazardsNearWorldZ(state, boss.z, BOSS_CONFIG.gateClearanceZ);
   reserveGateSpawnAfterBoss(state);
   state.bossEncounterCount += 1;
   return boss;

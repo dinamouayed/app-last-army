@@ -121,6 +121,17 @@ describe('world generation', () => {
     expect(gated?.waveRemaining).toBe(1);
     expect(gated?.waveTimer).toBe(DIFFICULTY_CONFIG.gateFollowupDelay);
   });
+
+  it('materializes a LaneHazard with a safe lane remaining', () => {
+    const state = createGameState(1);
+    state.armySize = 20;
+    debugQueueSegment(state, 'LaneHazard', 0, 50);
+    updateWorld(state, 0, () => 0.4);
+    const live = state.hazards.filter((hazard) => hazard.active);
+    expect(live.length).toBeGreaterThanOrEqual(1);
+    expect(live.length).toBeLessThan(3);
+    expect(new Set(live.map((hazard) => hazard.lane)).size).toBe(live.length);
+  });
 });
 
 describe('world fairness', () => {

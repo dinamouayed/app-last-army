@@ -18,7 +18,7 @@ export const GAME_CONFIG = {
   swipeThresholdPx: 52,
   swipeHintDuration: 2.6,
   soldierDrawScale: 1.35,
-  maxVisibleSoldiers: 80,
+  maxVisibleSoldiers: 220,
   maxDeltaSeconds: 0.05,
   hudUpdateInterval: 0.08,
   camera: {

@@ -265,10 +265,10 @@ For large armies, cap the number of rendered soldiers.
 Example:
 
 ```text
-MAX_VISIBLE_SOLDIERS = 80
+MAX_VISIBLE_SOLDIERS = 220
 ```
 
-If the army contains 800 soldiers, approximately 80 soldiers can visually represent the crowd.
+If the army contains 800 soldiers, approximately 220 soldiers can visually represent the crowd. The rear of a huge army spills off the bottom of the screen so the player never sees the entire crowd.
 
 The formation should dynamically expand as the army grows.
 
@@ -515,8 +515,9 @@ For example:
 +1
 +2
 ...
-+25
 ```
+
+There is no maximum. Extra shots keep raising the value.
 
 Therefore the player has to make a strategic choice:
 
@@ -534,7 +535,6 @@ Example:
 interface ShootableGateConfig {
   initialValue: number;
   valuePerDamageThreshold: number;
-  maxValue: number;
 }
 ```
 
@@ -564,11 +564,13 @@ Low HP.
 
 Normal speed.
 
-### Fast Enemy
+### Fast Enemy (charger)
 
 Low HP.
 
 High speed.
+
+Stays in its lane. If it reaches the army, it removes a larger share of soldiers than a basic enemy. The player must switch lanes to shoot it.
 
 ### Tank Enemy
 
@@ -579,6 +581,12 @@ Slow speed.
 Enemies reaching the army kill soldiers.
 
 Enemies stay in front of the army and steer toward it rather than wrapping behind the formation. Contact damage scales with current army size so a huge crowd cannot tank indefinitely, but a single missed enemy should not wipe the run.
+
+### Lane hazards
+
+TNT crates occupy 1 or 2 lanes — never all three.
+
+Hitting a crate wipes the army. The player must swipe to the clear lane. Crates cannot be shot. A short explosion plays on impact.
 
 Enemy stats must scale with distance.
 
@@ -754,6 +762,7 @@ ShootableGate
 WeaponUnlock
 MixedEncounter
 RecoverySection
+LaneHazard
 BossApproach
 ```
 

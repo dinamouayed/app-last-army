@@ -53,6 +53,10 @@ export interface Paints {
   enemyUniformDark: SkPaint;
   enemyHelmet: SkPaint;
   enemyPants: SkPaint;
+  chargerUniform: SkPaint;
+  chargerUniformDark: SkPaint;
+  chargerHelmet: SkPaint;
+  chargerPants: SkPaint;
   muzzleFlash: SkPaint;
   muzzleCore: SkPaint;
   tracer: SkPaint;
@@ -84,6 +88,17 @@ export interface Paints {
   gateNegative: SkPaint;
   gateNegativeGlow: SkPaint;
   gateNegativeFrame: SkPaint;
+  hazardFill: SkPaint;
+  hazardFillDark: SkPaint;
+  hazardStripe: SkPaint;
+  hazardGlow: SkPaint;
+  hazardSpike: SkPaint;
+  hazardMound: SkPaint;
+  hazardDirt: SkPaint;
+  hazardWall: SkPaint;
+  hazardLip: SkPaint;
+  hazardRock: SkPaint;
+  hazardOutline: SkPaint;
   gateMultiply: SkPaint;
   gateMultiplyGlow: SkPaint;
   gateMultiplyFrame: SkPaint;
@@ -184,6 +199,10 @@ export function createRenderResources(): RenderResources {
       enemyUniformDark: fillPaint(PALETTE.enemyUniformDark),
       enemyHelmet: fillPaint(PALETTE.enemyHelmet),
       enemyPants: fillPaint(PALETTE.enemyPants),
+      chargerUniform: fillPaint(PALETTE.chargerUniform),
+      chargerUniformDark: fillPaint(PALETTE.chargerUniformDark),
+      chargerHelmet: fillPaint(PALETTE.chargerHelmet),
+      chargerPants: fillPaint(PALETTE.chargerPants),
       muzzleFlash: fillPaint(PALETTE.muzzleFlash),
       muzzleCore: fillPaint(PALETTE.muzzleCore),
       tracer: strokePaint(PALETTE.tracer, 4.2),
@@ -215,6 +234,17 @@ export function createRenderResources(): RenderResources {
       gateNegative: fillPaint(PALETTE.gateNegative),
       gateNegativeGlow: fillPaint(PALETTE.gateNegativeGlow),
       gateNegativeFrame: strokePaint(PALETTE.gateNegativeFrame, 4),
+      hazardFill: fillPaint(PALETTE.hazardFill),
+      hazardFillDark: fillPaint(PALETTE.hazardFillDark),
+      hazardStripe: fillPaint(PALETTE.hazardStripe),
+      hazardGlow: fillPaint(PALETTE.hazardGlow),
+      hazardSpike: fillPaint(PALETTE.hazardSpike),
+      hazardMound: fillPaint(PALETTE.hazardMound),
+      hazardDirt: fillPaint(PALETTE.hazardDirt),
+      hazardWall: fillPaint(PALETTE.hazardWall),
+      hazardLip: fillPaint(PALETTE.hazardLip),
+      hazardRock: fillPaint(PALETTE.hazardRock),
+      hazardOutline: strokePaint(PALETTE.hazardOutline, 2.4),
       gateMultiply: fillPaint(PALETTE.gateMultiply),
       gateMultiplyGlow: fillPaint(PALETTE.gateMultiplyGlow),
       gateMultiplyFrame: strokePaint(PALETTE.gateMultiplyFrame, 4),

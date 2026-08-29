@@ -58,20 +58,19 @@ describe('gateEvolution', () => {
     expect(gate.value).toBe(1);
   });
 
-  it('caps evolution at the configured maximum', () => {
+  it('keeps evolving with no maximum value', () => {
     const gate = createEmptyGate();
     gate.shootable = true;
-    gate.signedValue = GATE_CONFIG.shootable.maxValue - 1;
+    gate.signedValue = 25;
     syncShootableGateDerived(gate);
 
-    for (let i = 0; i < GATE_CONFIG.shootable.hitsPerStep; i += 1) {
-      applyHitToShootableGate(gate, 1);
-    }
-    expect(gate.signedValue).toBe(GATE_CONFIG.shootable.maxValue);
+    const next = applyHitToShootableGate(gate, GATE_CONFIG.shootable.hitsPerStep);
+    expect(next.steps).toBe(1);
+    expect(gate.signedValue).toBe(26);
 
-    const capped = applyHitToShootableGate(gate, GATE_CONFIG.shootable.hitsPerStep);
-    expect(capped.steps).toBe(0);
-    expect(gate.signedValue).toBe(GATE_CONFIG.shootable.maxValue);
+    const further = applyHitToShootableGate(gate, GATE_CONFIG.shootable.hitsPerStep * 10);
+    expect(further.steps).toBe(10);
+    expect(gate.signedValue).toBe(36);
   });
 
   it('tracks progress toward the next step', () => {

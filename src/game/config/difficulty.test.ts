@@ -10,6 +10,10 @@ import {
   scaleGateValue,
   scaleShootableInitialValue,
   weaponUnlockCostMultiplier,
+  chargerSpawnChance,
+  scaledEnemyApproachSpeed,
+  enemyGroupBounds,
+  waveGroupCount,
 } from './difficulty';
 
 describe('difficulty scaling', () => {
@@ -43,9 +47,40 @@ describe('difficulty scaling', () => {
     expect(late.factor).toBeGreaterThan(early.factor);
     expect(late.enemyHp).toBeGreaterThan(early.enemyHp);
     expect(late.enemyApproachSpeed).toBeGreaterThan(early.enemyApproachSpeed);
-    expect(late.enemyGroupMax).toBeGreaterThanOrEqual(early.enemyGroupMax);
+    expect(late.enemyGroupMax).toBeGreaterThan(early.enemyGroupMax);
+    expect(late.waveGroupCount).toBeGreaterThan(early.waveGroupCount);
     expect(late.spawnInterval).toBeLessThan(early.spawnInterval);
     expect(late.bossHp).toBeGreaterThan(early.bossHp);
     expect(late.encounterComplexity).toBe(1);
+  });
+
+  it('keeps chargers locked until 1000 m and faster than basic enemies', () => {
+    expect(chargerSpawnChance(0)).toBe(0);
+    expect(chargerSpawnChance(999)).toBe(0);
+    expect(chargerSpawnChance(1000)).toBeGreaterThan(0);
+    expect(scaledEnemyApproachSpeed(0, ENEMIES.charger.approachSpeed)).toBeGreaterThan(
+      scaledEnemyApproachSpeed(0, ENEMIES.basic.approachSpeed),
+    );
+    expect(scaledEnemyApproachSpeed(1600, ENEMIES.charger.approachSpeed)).toBeGreaterThan(
+      scaledEnemyApproachSpeed(1600, ENEMIES.basic.approachSpeed),
+    );
+  });
+
+  it('scales enemy group size with distance up to a late-game cap', () => {
+    const early = enemyGroupBounds(0);
+    const mid = enemyGroupBounds(800);
+    const late = enemyGroupBounds(1600);
+    const pastCap = enemyGroupBounds(4000);
+
+    expect(early.min).toBe(1);
+    expect(early.max).toBe(2);
+    expect(mid.min).toBeGreaterThan(early.min);
+    expect(mid.max).toBeGreaterThan(early.max);
+    expect(late.min).toBe(6);
+    expect(late.max).toBe(9);
+    expect(pastCap).toEqual(late);
+    expect(waveGroupCount(0)).toBe(1);
+    expect(waveGroupCount(1600)).toBe(5);
+    expect(scaledSpawnInterval(0)).toBeGreaterThan(scaledSpawnInterval(1600));
   });
 });

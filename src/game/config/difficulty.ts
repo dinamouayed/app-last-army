@@ -10,6 +10,7 @@ export type SegmentKind =
   | 'WeaponUnlock'
   | 'MixedEncounter'
   | 'RecoverySection'
+  | 'LaneHazard'
   | 'BossApproach';
 
 export interface SegmentLengthRange {
@@ -34,18 +35,18 @@ export const DIFFICULTY_CONFIG = {
     maxEngaging: 0.72,
   },
   enemyCount: {
-    minStart: 2,
-    maxStart: 3,
-    minLate: 4,
-    maxLate: 7,
+    minStart: 1,
+    maxStart: 2,
+    minLate: 6,
+    maxLate: 9,
   },
   spawnInterval: {
-    start: 1.55,
-    end: 0.95,
+    start: 1.7,
+    end: 0.8,
   },
   waveGroups: {
-    start: 2,
-    end: 4,
+    start: 1,
+    end: 5,
   },
   gateValue: {
     addMaxMultiplier: 2.2,
@@ -74,16 +75,18 @@ export const DIFFICULTY_CONFIG = {
     WeaponUnlock: { min: 64, max: 88 },
     MixedEncounter: { min: 68, max: 96 },
     RecoverySection: { min: 34, max: 48 },
+    LaneHazard: { min: 42, max: 58 },
     BossApproach: { min: BOSS_CONFIG.approachDistance, max: BOSS_CONFIG.approachDistance },
   } satisfies Record<SegmentKind, SegmentLengthRange>,
   /** Base weights — Recovery / BossApproach are mostly rule-driven. */
   baseWeights: {
     GateChoice: 18,
-    EnemyWave: 38,
+    EnemyWave: 42,
     ShootableGate: 12,
     WeaponUnlock: 8,
-    MixedEncounter: 18,
+    MixedEncounter: 16,
     RecoverySection: 4,
+    LaneHazard: 16,
     BossApproach: 0,
   } satisfies Record<SegmentKind, number>,
   lowArmySize: 5,
@@ -94,6 +97,11 @@ export const DIFFICULTY_CONFIG = {
   /** Seconds after a gate appears before a follow-up enemy group spawns ahead. */
   gateFollowupDelay: 1.85,
   mixedUnlockComplexity: 0.18,
+  charger: {
+    unlockDistance: 1000,
+    chanceStart: 0.16,
+    chanceLate: 0.42,
+  },
 } as const;
 
 export type DifficultyConfig = typeof DIFFICULTY_CONFIG;
@@ -105,6 +113,7 @@ export const SEGMENT_KINDS = [
   'WeaponUnlock',
   'MixedEncounter',
   'RecoverySection',
+  'LaneHazard',
   'BossApproach',
 ] as const satisfies readonly SegmentKind[];
 
@@ -156,9 +165,14 @@ export function difficultyFactor(distance: number): number {
   return 1 + Math.max(0, distance) / DIFFICULTY_CONFIG.distanceUnit;
 }
 
+/** Linear 0→1 by meters traveled, then capped. Used for enemy count / wave density. */
+export function distanceProgress(distance: number): number {
+  return clamp01(Math.max(0, distance) / DIFFICULTY_CONFIG.fullProgressDistance);
+}
+
 /** Smooth 0→1 progress. Ease-in keeps the first hundreds of meters easy. */
 export function difficultyProgress(distance: number): number {
-  const linear = clamp01(Math.max(0, distance) / DIFFICULTY_CONFIG.fullProgressDistance);
+  const linear = distanceProgress(distance);
   return linear * linear;
 }
 
@@ -166,7 +180,7 @@ export function encounterComplexity(distance: number): number {
   return difficultyProgress(distance);
 }
 
-export function scaledEnemyHp(distance: number, baseHp = ENEMIES.basic.maxHp): number {
+export function scaledEnemyHp(distance: number, baseHp: number = ENEMIES.basic.maxHp): number {
   const t = difficultyProgress(distance);
   const multiplier = lerp(1, DIFFICULTY_CONFIG.enemyHp.maxMultiplier, t);
   return Math.max(1, Math.round(baseHp * multiplier));
@@ -174,20 +188,37 @@ export function scaledEnemyHp(distance: number, baseHp = ENEMIES.basic.maxHp): n
 
 export function scaledEnemyApproachSpeed(
   distance: number,
-  base = ENEMIES.basic.approachSpeed,
+  base: number = ENEMIES.basic.approachSpeed,
 ): number {
-  return lerp(base, DIFFICULTY_CONFIG.enemySpeed.maxApproach, difficultyProgress(distance));
+  const boost =
+    (DIFFICULTY_CONFIG.enemySpeed.maxApproach - ENEMIES.basic.approachSpeed) *
+    difficultyProgress(distance);
+  return base + boost;
 }
 
 export function scaledEnemyEngagingSpeed(
   distance: number,
-  base = ENEMIES.basic.engagingForwardSpeed,
+  base: number = ENEMIES.basic.engagingForwardSpeed,
 ): number {
-  return lerp(base, DIFFICULTY_CONFIG.enemySpeed.maxEngaging, difficultyProgress(distance));
+  const boost =
+    (DIFFICULTY_CONFIG.enemySpeed.maxEngaging - ENEMIES.basic.engagingForwardSpeed) *
+    difficultyProgress(distance);
+  return base + boost;
+}
+
+export function chargerSpawnChance(distance: number): number {
+  if (distance < DIFFICULTY_CONFIG.charger.unlockDistance) {
+    return 0;
+  }
+  return lerp(
+    DIFFICULTY_CONFIG.charger.chanceStart,
+    DIFFICULTY_CONFIG.charger.chanceLate,
+    difficultyProgress(distance),
+  );
 }
 
 export function enemyGroupBounds(distance: number): { min: number; max: number } {
-  const t = difficultyProgress(distance);
+  const t = distanceProgress(distance);
   const min = Math.round(
     lerp(DIFFICULTY_CONFIG.enemyCount.minStart, DIFFICULTY_CONFIG.enemyCount.minLate, t),
   );
@@ -204,12 +235,12 @@ export function scaledSpawnInterval(distance: number): number {
   return lerp(
     DIFFICULTY_CONFIG.spawnInterval.start,
     DIFFICULTY_CONFIG.spawnInterval.end,
-    difficultyProgress(distance),
+    distanceProgress(distance),
   );
 }
 
 export function waveGroupCount(distance: number): number {
-  const t = difficultyProgress(distance);
+  const t = distanceProgress(distance);
   const raw = lerp(DIFFICULTY_CONFIG.waveGroups.start, DIFFICULTY_CONFIG.waveGroups.end, t);
   return Math.max(1, Math.round(raw));
 }

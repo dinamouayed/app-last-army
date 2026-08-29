@@ -65,6 +65,8 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
 
       if (session.state.status === 'running') {
         session.update(dt);
+      } else if (session.state.status === 'gameover' && session.state.explosionBurst > 0) {
+        session.updateDeathFx(dt);
       }
 
       updateFrameStats(stats, dt);
@@ -98,7 +100,11 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
         });
       }
 
-      if (session.state.status === 'gameover' && !session.gameOverNotified) {
+      if (
+        session.state.status === 'gameover' &&
+        session.state.explosionBurst <= 0 &&
+        !session.gameOverNotified
+      ) {
         session.gameOverNotified = true;
         onGameOverRef.current(session.state.distance);
       }

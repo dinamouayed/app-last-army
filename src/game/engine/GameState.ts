@@ -3,6 +3,7 @@ import { createDyingVisualPool, createFormationBuffer } from '../army/formation'
 import { COMBAT_CONFIG } from '../config/combat';
 import { GAME_CONFIG } from '../config/game';
 import { createGateRuntimeState } from '../entities/gates';
+import { createHazardRuntimeState } from '../entities/hazards';
 import { createBossRuntimeState } from '../entities/boss';
 import { STARTING_WEAPON, createEmptyWeaponUpgradeTiers } from '../config/weapons';
 import { laneIndexToX } from '../math/lanes';
@@ -32,6 +33,9 @@ export function createGameState(seed?: number): GameState {
     slamBurst: 0,
     slamBurstX: 0,
     slamBurstZ: 0,
+    explosionBurst: 0,
+    explosionBurstX: 0,
+    explosionBurstZ: 0,
     fireOriginIndex: 0,
     dyingVisuals: createDyingVisualPool(),
     weaponId: STARTING_WEAPON,
@@ -49,6 +53,7 @@ export function createGameState(seed?: number): GameState {
     enemies: [],
     particles: [],
     ...createGateRuntimeState(),
+    ...createHazardRuntimeState(),
     ...createBossRuntimeState(),
     ...createWorldRuntimeState(seed),
   };

@@ -14,6 +14,7 @@ import {
 import { BOSS_CONFIG } from '../config/bosses';
 import { COMBAT_CONFIG } from '../config/combat';
 import { GAME_CONFIG } from '../config/game';
+import { HAZARD_CONFIG } from '../config/hazards';
 import { WEAPON_UNLOCK_CONFIG } from '../config/weaponUnlocks';
 import { livingEnemyCount } from '../entities/combat';
 import { isBossPresent } from '../entities/boss';
@@ -24,6 +25,7 @@ import type { WorldSegment } from '../world/worldState';
 import { acquireSegment, recycleSegment } from '../world/worldState';
 import { type GateGenerationMode } from './GateGenerator';
 import { clearGatesNearWorldZ, spawnGateChoice } from './GateSystem';
+import { clearHazardsNearWorldZ, spawnHazardSet } from './HazardSystem';
 import { tryScheduleBossFromKills } from './BossSystem';
 import { minEnemySpawnZ, pickSpawnLane, spawnEnemyGroup } from './SpawnSystem';
 
@@ -180,6 +182,17 @@ function weightForKind(
       return 0;
     }
   }
+  if (kind === 'LaneHazard') {
+    if (state.worldFrontier < HAZARD_CONFIG.firstHazardDistance) {
+      return 0;
+    }
+    if (state.armySize <= DIFFICULTY_CONFIG.tinyArmySize) {
+      return 0;
+    }
+    if (state.armySize <= DIFFICULTY_CONFIG.lowArmySize) {
+      weight *= 0.4;
+    }
+  }
   if (state.armySize <= DIFFICULTY_CONFIG.tinyArmySize) {
     if (kind === 'RecoverySection') {
       weight *= 5;
@@ -219,6 +232,7 @@ function pickSegmentKind(state: GameState, rng: () => number): SegmentKind {
     'WeaponUnlock',
     'MixedEncounter',
     'RecoverySection',
+    'LaneHazard',
   ];
   let total = 0;
   const weights: number[] = [];
@@ -393,6 +407,12 @@ function materializeSegment(state: GameState, segment: WorldSegment, rng: () => 
     const playerZ = playerWorldZ(state.distance, GAME_CONFIG.camera);
     const armyFrontZ = armyFrontWorldZ(playerZ, state.formationSlots);
     clearGatesNearWorldZ(state, armyFrontZ + BOSS_CONFIG.spawnDepthOffset, BOSS_CONFIG.gateClearanceZ);
+    clearHazardsNearWorldZ(state, armyFrontZ + BOSS_CONFIG.spawnDepthOffset, BOSS_CONFIG.gateClearanceZ);
+    return;
+  }
+
+  if (segment.kind === 'LaneHazard') {
+    spawnHazardSet(state, rng);
     return;
   }
 

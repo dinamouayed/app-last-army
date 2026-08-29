@@ -6,8 +6,10 @@ import {
   endLaneGesture,
   updateLaneGesture,
 } from '../math/lanes';
+import { updateArmyVisuals } from '../systems/ArmySystem';
 import { updateCombat } from '../systems/CombatSystem';
 import { spawnBossForDev } from '../systems/BossSystem';
+import { updateParticles } from '../systems/EnemySystem';
 import { resyncWorldAfterDistanceJump } from '../systems/WorldGenerator';
 import { updateRunner } from '../systems/RunnerSystem';
 import type { GameState, InputState } from '../types';
@@ -28,6 +30,12 @@ export class GameSession {
   update(dt: number): void {
     updateRunner(this.state, dt, GAME_CONFIG);
     updateCombat(this.state, dt);
+  }
+
+  /** Keep the TNT fireball and death debris moving after the run has ended. */
+  updateDeathFx(dt: number): void {
+    updateArmyVisuals(this.state, dt);
+    updateParticles(this.state, dt);
   }
 
   beginSwipe(): void {
