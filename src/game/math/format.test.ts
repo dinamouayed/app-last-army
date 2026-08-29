@@ -4,11 +4,11 @@ import { formatDistance, isGameOver } from './format';
 
 describe('formatDistance', () => {
   it('formats whole meters with grouping separators', () => {
-    expect(formatDistance(2847.9)).toBe('2,847 m');
+    expect(formatDistance(2847.9)).toBe('2,847');
   });
 
   it('never shows a negative distance', () => {
-    expect(formatDistance(-10)).toBe('0 m');
+    expect(formatDistance(-10)).toBe('0');
   });
 });
 

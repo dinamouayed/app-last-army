@@ -13,6 +13,13 @@ describe('updateRunner', () => {
     expect(state.status).toBe('running');
   });
 
+  it('advances at the opening pace on the first step', () => {
+    const state = createGameState();
+    const dt = 1 / 60;
+    updateRunner(state, dt, GAME_CONFIG);
+    expect(state.distance).toBeCloseTo(GAME_CONFIG.startForwardSpeed * dt, 5);
+  });
+
   it('increases distance based on elapsed time, not frame count', () => {
     const sixtyFps = createGameState();
     const thirtyFps = createGameState();
@@ -24,9 +31,11 @@ describe('updateRunner', () => {
       updateRunner(thirtyFps, 1 / 30, GAME_CONFIG);
     }
 
-    expect(sixtyFps.distance).toBeCloseTo(GAME_CONFIG.forwardSpeed, 5);
-    expect(thirtyFps.distance).toBeCloseTo(GAME_CONFIG.forwardSpeed, 5);
-    expect(sixtyFps.distance).toBeCloseTo(thirtyFps.distance, 5);
+    expect(sixtyFps.distance).toBeGreaterThan(GAME_CONFIG.startForwardSpeed);
+    expect(sixtyFps.distance).toBeLessThan(GAME_CONFIG.maxForwardSpeed);
+    expect(thirtyFps.distance).toBeGreaterThan(GAME_CONFIG.startForwardSpeed);
+    expect(thirtyFps.distance).toBeLessThan(GAME_CONFIG.maxForwardSpeed);
+    expect(sixtyFps.distance).toBeCloseTo(thirtyFps.distance, 2);
   });
 
   it('moves the army toward the selected lane over time', () => {

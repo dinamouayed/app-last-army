@@ -37,7 +37,7 @@ export function HomeSceneCanvas() {
       }
 
       state.elapsed += dt;
-      state.distance += GAME_CONFIG.forwardSpeed * 0.55 * dt;
+      state.distance += GAME_CONFIG.startForwardSpeed * 0.55 * dt;
 
       const picture = recordHomeFrame(resources, state, width, height);
       publishSkiaPicture(viewRef.current, picture, pictureHolder);

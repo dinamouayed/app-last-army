@@ -1,5 +1,5 @@
 import { checkArmyGameOver } from '../army/armyState';
-import type { GameConfig } from '../config/game';
+import { forwardSpeedForDistance, type GameConfig } from '../config/game';
 import { interpolateToward, laneIndexToX } from '../math/lanes';
 import type { GameState } from '../types';
 
@@ -13,7 +13,7 @@ export function updateRunner(
   }
 
   state.elapsed += dt;
-  state.distance += config.forwardSpeed * dt;
+  state.distance += forwardSpeedForDistance(state.distance, config) * dt;
 
   const targetX = laneIndexToX(state.targetLane, config.laneSpacing);
   state.armyX = interpolateToward(
