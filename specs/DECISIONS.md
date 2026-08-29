@@ -81,6 +81,8 @@ Early red enemies are larger and take more shots to drop so the first stretch is
 
 Enemy group size and wave density scale with meters traveled, from a small opening up to a late-game cap. They do not scale with army size: skipping growth does not shrink the pressure that distance already earned.
 
+The density curve reaches its cap later than HP and speed (2000 m). Mid-run (around 1000–1500 m) stays below the late-game group and wave ceilings so the road is busy without flooding every lane.
+
 ---
 
 ## 2026-08-24 — Player placeholder

@@ -27,6 +27,11 @@ export const DIFFICULTY_CONFIG = {
   distanceUnit: 500,
   /** Progress 0→1 used by most lerp curves. Early game stays gentle. */
   fullProgressDistance: 1600,
+  /**
+   * Enemy count / wave density reach their late values later than HP and speed,
+   * so 1000–1500 m stays busy without already sitting on the cap.
+   */
+  densityFullProgressDistance: 2000,
   enemyHp: {
     maxMultiplier: 3.2,
   },
@@ -38,11 +43,11 @@ export const DIFFICULTY_CONFIG = {
     minStart: 1,
     maxStart: 2,
     minLate: 6,
-    maxLate: 9,
+    maxLate: 8,
   },
   spawnInterval: {
     start: 1.7,
-    end: 0.8,
+    end: 0.88,
   },
   waveGroups: {
     start: 1,
@@ -165,9 +170,14 @@ export function difficultyFactor(distance: number): number {
   return 1 + Math.max(0, distance) / DIFFICULTY_CONFIG.distanceUnit;
 }
 
-/** Linear 0→1 by meters traveled, then capped. Used for enemy count / wave density. */
+/** Linear 0→1 by meters traveled, then capped. Used for HP / speed / gates. */
 export function distanceProgress(distance: number): number {
   return clamp01(Math.max(0, distance) / DIFFICULTY_CONFIG.fullProgressDistance);
+}
+
+/** Linear 0→1 for group size, wave count, and spawn cadence. Caps after HP/speed. */
+export function densityProgress(distance: number): number {
+  return clamp01(Math.max(0, distance) / DIFFICULTY_CONFIG.densityFullProgressDistance);
 }
 
 /** Smooth 0→1 progress. Ease-in keeps the first hundreds of meters easy. */
@@ -218,7 +228,7 @@ export function chargerSpawnChance(distance: number): number {
 }
 
 export function enemyGroupBounds(distance: number): { min: number; max: number } {
-  const t = distanceProgress(distance);
+  const t = densityProgress(distance);
   const min = Math.round(
     lerp(DIFFICULTY_CONFIG.enemyCount.minStart, DIFFICULTY_CONFIG.enemyCount.minLate, t),
   );
@@ -235,12 +245,12 @@ export function scaledSpawnInterval(distance: number): number {
   return lerp(
     DIFFICULTY_CONFIG.spawnInterval.start,
     DIFFICULTY_CONFIG.spawnInterval.end,
-    distanceProgress(distance),
+    densityProgress(distance),
   );
 }
 
 export function waveGroupCount(distance: number): number {
-  const t = distanceProgress(distance);
+  const t = densityProgress(distance);
   const raw = lerp(DIFFICULTY_CONFIG.waveGroups.start, DIFFICULTY_CONFIG.waveGroups.end, t);
   return Math.max(1, Math.round(raw));
 }
