@@ -21,7 +21,9 @@ export interface DyingSoldierVisual {
   t: number;
 }
 
-export function createDyingVisualPool(size = 40): DyingSoldierVisual[] {
+export function createDyingVisualPool(
+  size = ARMY_CONFIG.maxVisibleSoldiers,
+): DyingSoldierVisual[] {
   return Array.from({ length: size }, () => ({
     active: false,
     offsetX: 0,

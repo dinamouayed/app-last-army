@@ -32,8 +32,12 @@ export class GameSession {
     updateCombat(this.state, dt);
   }
 
-  /** Keep the TNT fireball and death debris moving after the run has ended. */
+  /** Keep the fireball, slam burst, and fading soldiers moving after the run has ended. */
   updateDeathFx(dt: number): void {
+    this.state.elapsed += dt;
+    if (this.state.slamBurst > 0) {
+      this.state.slamBurst = Math.max(0, this.state.slamBurst - dt);
+    }
     updateArmyVisuals(this.state, dt);
     updateParticles(this.state, dt);
   }

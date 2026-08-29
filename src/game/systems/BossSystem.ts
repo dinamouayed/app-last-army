@@ -16,7 +16,7 @@ import { playerWorldZ } from '../math/camera';
 import { asphaltLaneCenterX } from '../math/roadBounds';
 import { recycleSegment } from '../world/worldState';
 import { clearGatesNearWorldZ } from './GateSystem';
-import { clearHazardsNearWorldZ } from './HazardSystem';
+import { clearHazardsNearWorldZ, spawnExplosionBurst } from './HazardSystem';
 import type { GameState } from '../types';
 
 function resolveBossSpawnDistance(state: GameState, candidate: number): number {
@@ -273,6 +273,9 @@ function executeSlam(state: GameState, boss: Boss): void {
   state.contactPulse = COMBAT_CONFIG.contactPulseDuration * 1.85;
   state.contactX = boss.x;
   state.contactZ = impactZ;
+  if (state.status === 'gameover') {
+    spawnExplosionBurst(state, state.armyX, impactZ);
+  }
 }
 
 function updateApproachingBoss(state: GameState, boss: Boss, dt: number): void {

@@ -6,6 +6,7 @@ import { GAME_CONFIG } from '../config/game';
 import { WEAPONS } from '../config/weapons';
 import {
   addSoldiers,
+  hasPendingDeathPresentation,
   refreshFormation,
   removeSoldiers,
   setArmySize,
@@ -296,6 +297,16 @@ describe('game over detection', () => {
     state.armySize = 0;
     updateRunner(state, 1 / 60, GAME_CONFIG);
     expect(state.status).toBe('gameover');
+  });
+
+  it('keeps fading soldiers pending after a wipe so game over can wait', () => {
+    const state = createGameState();
+    state.armySize = 12;
+    refreshFormation(state);
+    removeSoldiers(state, 12, state.armyX, 0);
+    expect(state.status).toBe('gameover');
+    expect(state.dyingVisuals.some((visual) => visual.active)).toBe(true);
+    expect(hasPendingDeathPresentation(state)).toBe(true);
   });
 });
 

@@ -139,6 +139,19 @@ export function checkArmyGameOver(state: GameState): void {
   }
 }
 
+/** Game-over screen waits until the fireball and fading soldiers have played. */
+export function hasPendingDeathPresentation(state: GameState): boolean {
+  if (state.explosionBurst > 0) {
+    return true;
+  }
+  for (let i = 0; i < state.dyingVisuals.length; i += 1) {
+    if (state.dyingVisuals[i]?.active) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function addSoldiers(state: GameState, amount: number): void {
   if (amount <= 0 || state.status !== 'running') {
     return;

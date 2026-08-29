@@ -31,7 +31,8 @@ function twoLaneChance(distance: number): number {
   );
 }
 
-function spawnTntExplosion(state: GameState, x: number, z: number): void {
+/** Local fireball used before the game-over screen (TNT crate, fatal boss slam). */
+export function spawnExplosionBurst(state: GameState, x: number, z: number): void {
   state.explosionBurst = HAZARD_CONFIG.explosionDuration;
   state.explosionBurstX = x;
   state.explosionBurstZ = z;
@@ -72,7 +73,7 @@ function activateHazard(state: GameState, hazard: Hazard): void {
   hazard.activated = true;
   hazard.fadeT = 0;
   removeSoldiers(state, state.armySize, hazard.x, hazard.z);
-  spawnTntExplosion(state, hazard.x, hazard.z);
+  spawnExplosionBurst(state, hazard.x, hazard.z);
   checkArmyGameOver(state);
 }
 

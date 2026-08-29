@@ -1,8 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { hasPendingDeathPresentation, refreshFormation } from '../army/armyState';
 import { BOSS_CONFIG, bossMaxHpForDistance, bossSlamDamageForEncounter } from '../config/bosses';
 import { GAME_CONFIG } from '../config/game';
+import { HAZARD_CONFIG } from '../config/hazards';
 import { WEAPONS } from '../config/weapons';
+import { GameSession } from '../engine/GameSession';
 import { createGameState } from '../engine/GameState';
 import { createEmptyGate } from '../entities/gates';
 import { playerWorldZ } from '../math/camera';
@@ -235,5 +238,37 @@ describe('boss combat', () => {
     updateBoss(state, 0.02);
     expect(state.armySize).toBe(38);
     expect(state.boss.slamDamageApplied).toBe(true);
+    expect(state.explosionBurst).toBe(0);
+    expect(state.status).toBe('running');
+  });
+
+  it('fatal slam explodes the army and keeps fading soldiers before game over settles', () => {
+    const state = createGameState();
+    state.armySize = 1;
+    refreshFormation(state);
+    spawnBoss(state);
+    state.boss.behavior = 'fighting';
+    state.boss.attackPhase = 'slamHold';
+    state.boss.slamDamageApplied = false;
+    state.boss.attackPhaseT = BOSS_CONFIG.slamHoldDuration;
+    updateBoss(state, BOSS_CONFIG.slamImpactPause);
+    updateBoss(state, 0.02);
+
+    expect(state.status).toBe('gameover');
+    expect(state.armySize).toBe(0);
+    expect(state.explosionBurst).toBe(HAZARD_CONFIG.explosionDuration);
+    expect(state.dyingVisuals.some((visual) => visual.active)).toBe(true);
+    expect(hasPendingDeathPresentation(state)).toBe(true);
+    expect(state.particles.some((particle) => particle.active && particle.kind === 'explosion')).toBe(
+      true,
+    );
+
+    const session = new GameSession();
+    session.state = state;
+    const wait = HAZARD_CONFIG.explosionDuration + 0.05;
+    for (let t = 0; t < wait; t += 1 / 60) {
+      session.updateDeathFx(1 / 60);
+    }
+    expect(hasPendingDeathPresentation(state)).toBe(false);
   });
 });

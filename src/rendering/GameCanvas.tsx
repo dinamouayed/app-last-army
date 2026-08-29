@@ -12,6 +12,7 @@ import { getWeaponUpgradeTier, weaponDisplayName } from '../game/config/weapons'
 import { difficultyFactor } from '../game/config/difficulty';
 import { GAME_CONFIG } from '../game/config/game';
 import type { HudSnapshot } from '../game/types';
+import { hasPendingDeathPresentation } from '../game/army/armyState';
 import { currentSegmentKind } from '../game/world/worldState';
 import { createRenderResources } from './paints';
 import { recordFrame } from './recordFrame';
@@ -65,7 +66,10 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
 
       if (session.state.status === 'running') {
         session.update(dt);
-      } else if (session.state.status === 'gameover' && session.state.explosionBurst > 0) {
+      } else if (
+        session.state.status === 'gameover' &&
+        hasPendingDeathPresentation(session.state)
+      ) {
         session.updateDeathFx(dt);
       }
 
@@ -102,7 +106,7 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
 
       if (
         session.state.status === 'gameover' &&
-        session.state.explosionBurst <= 0 &&
+        !hasPendingDeathPresentation(session.state) &&
         !session.gameOverNotified
       ) {
         session.gameOverNotified = true;
