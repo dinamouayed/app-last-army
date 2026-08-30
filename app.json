@@ -8,7 +8,10 @@
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.lastarmy.game"
+      "bundleIdentifier": "com.lastarmy.game",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +21,10 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.lastarmy.game"
+      "package": "com.lastarmy.game",
+      "permissions": [
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -33,6 +39,12 @@
           "enableBackgroundPlayback": false
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "542ad234-4e41-4e68-ba1a-ae33c2c3be76"
+      }
+    },
+    "owner": "dinamouayed"
   }
 }
