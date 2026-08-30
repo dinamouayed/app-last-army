@@ -7,8 +7,9 @@ export const BOSS_CONFIG = {
   approachDistance: 48,
   /** HP scaling reference distance — spawn is kill-gated, not this value. */
   firstBossDistance: 320,
-  baseMaxHp: 850,
-  hpPerDistance: 2.8,
+  /** Starting HP — scales with run distance only, not army size. */
+  baseMaxHp: 1200,
+  hpPerDistance: 3.8,
   spawnDepthOffset: 48,
   /** Dev spawn — close enough to see the Brute immediately on screen. */
   devSpawnDepthOffset: 16,
@@ -18,10 +19,10 @@ export const BOSS_CONFIG = {
   fightDepthOffset: 1.05,
   closureSpeed: 10,
   collisionRadius: 0.85,
-  attackInterval: 3.2,
-  firstBossAttackInterval: 5.0,
+  attackInterval: 1.7,
+  firstBossAttackInterval: 2.6,
   /** Static pose before the attack sequence — no damage. */
-  holdBeforeAttack: 1.5,
+  holdBeforeAttack: 0.7,
   /** Fast wind-up frames (arms raised). */
   windupRaiseDuration: 0.42,
   /** Skip the arms-up hold — wind-up flows straight into the slam. */
@@ -35,7 +36,7 @@ export const BOSS_CONFIG = {
   /** Fast recovery frames back to standing. */
   recoverDuration: 0.36,
   /** Standing pause after recovering, before the next idle wait. */
-  recoverHoldDuration: 1.0,
+  recoverHoldDuration: 0.4,
   /** Screen explosion burst when the slam lands. */
   slamBurstDuration: 0.48,
   hitFlashDuration: 0.1,
@@ -59,6 +60,25 @@ export const BOSS_CONFIG = {
   minGateDistanceSeparation: 56,
   /** World-depth clearance — gates/barrels within this range of the boss are removed. */
   gateClearanceZ: 48,
+  /** Charge added by one valid tap (~24 fast taps fill the circle). */
+  tapChargePerTap: 0.042,
+  /** Charge lost per second after the idle grace — a pause dumps the circle. */
+  tapChargeDecay: 1.7,
+  /** Must stay above tapMaxGap so a valid mash does not leak charge. */
+  tapChargeIdleGrace: 0.205,
+  /** Next tap must arrive within this window or it does not add charge. */
+  tapMaxGap: 0.185,
+  /** Longer than this, or a swipe, is not a tap. */
+  tapMaxDuration: 0.26,
+  /** Horizontal move that cancels the tap candidate — below swipeThresholdPx. */
+  tapCancelDxPx: 36,
+  /** Fireball damage as a share of the boss's initial max HP. Never a kill. */
+  tapFireballHpFraction: 0.25,
+  tapFireballFlight: 0.4,
+  tapFireballImpact: 0.42,
+  tapPulseDuration: 0.16,
+  tapHintDuration: 2.8,
+  tapChargeVisualLerp: 14,
 } as const;
 
 export type BossConfig = typeof BOSS_CONFIG;
@@ -105,4 +125,16 @@ export function bossSlamDamageForEncounter(
 ): number {
   const scaled = Math.ceil(armySize * slamArmyFraction(encounterIndex) - 1e-9);
   return Math.max(1, Math.min(armySize, scaled));
+}
+
+export function bossTapFireballDamage(maxHp: number): number {
+  return Math.max(1, Math.round(maxHp * BOSS_CONFIG.tapFireballHpFraction));
+}
+
+/** 25% of initial max HP, but the fireball cannot finish the boss. */
+export function bossTapFireballAppliedDamage(hp: number, maxHp: number): number {
+  if (hp <= 1) {
+    return 0;
+  }
+  return Math.min(bossTapFireballDamage(maxHp), hp - 1);
 }

@@ -31,6 +31,7 @@ export function GameScreen({ onGameOver, onExit }: GameScreenProps) {
     enemiesKilled: 0,
     runSeed: 0,
     segmentKind: 'runway',
+    bossTapHint: 0,
   });
 
   const panResponder = useMemo(
@@ -70,6 +71,7 @@ export function GameScreen({ onGameOver, onExit }: GameScreenProps) {
         weaponName={hud.weaponName}
         elapsed={hud.elapsed}
         hasChangedLane={hud.hasChangedLane}
+        bossTapHint={hud.bossTapHint}
       />
       <ExitButton onPress={onExit} />
       <DevArmyControls session={sessionRef.current} />

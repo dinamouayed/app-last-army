@@ -11,7 +11,7 @@ import { isGateSegmentKind } from '../config/difficulty';
 import { GAME_CONFIG } from '../config/game';
 import { acquireEntity } from '../entities/combat';
 import type { Particle } from '../entities/combat';
-import type { Boss } from '../entities/boss';
+import { resetTapStrike, type Boss } from '../entities/boss';
 import { playerWorldZ } from '../math/camera';
 import { asphaltLaneCenterX } from '../math/roadBounds';
 import { recycleSegment } from '../world/worldState';
@@ -212,6 +212,8 @@ export function spawnBoss(
   clearHazardsNearWorldZ(state, boss.z, BOSS_CONFIG.gateClearanceZ);
   reserveGateSpawnAfterBoss(state);
   state.bossEncounterCount += 1;
+  resetTapStrike(state.tapStrike);
+  state.tapStrike.hintT = BOSS_CONFIG.tapHintDuration;
   return boss;
 }
 
@@ -245,6 +247,7 @@ export function applyProjectileBossHit(state: GameState, damage: number): void {
     return;
   }
   boss.hp -= damage;
+  boss.hitFlash = Math.max(boss.hitFlash, BOSS_CONFIG.hitFlashDuration);
   if (boss.hp <= 0) {
     killBoss(state, boss);
   }

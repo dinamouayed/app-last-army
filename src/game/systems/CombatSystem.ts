@@ -1,6 +1,7 @@
 import type { GameState } from '../types';
 import { updateArmyVisuals } from './ArmySystem';
 import { updateBoss } from './BossSystem';
+import { updateBossTapStrike } from './BossTapStrikeSystem';
 import { resolveProjectileEnemyCollisions } from './CollisionSystem';
 import { updateEnemies, updateParticles } from './EnemySystem';
 import { updateGates } from './GateSystem';
@@ -18,6 +19,7 @@ export function updateCombat(
     return;
   }
   updateBoss(state, dt);
+  updateBossTapStrike(state, dt);
   updateWorld(state, dt, rng);
   updateGates(state, dt, rng);
   updateHazards(state, dt);

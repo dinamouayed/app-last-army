@@ -73,7 +73,12 @@ describe('lanes', () => {
 
   it('locks a gesture after the first lane change even if the swipe keeps growing', () => {
     const state = createGameState();
-    const input = { gestureDx: 0, laneSwipeLocked: false };
+    const input = {
+      gestureDx: 0,
+      laneSwipeLocked: false,
+      tapCandidate: false,
+      gestureStartElapsed: 0,
+    };
     beginLaneGesture(input);
     updateLaneGesture(state, input, 80, THRESHOLD);
     expect(state.targetLane).toBe(2);

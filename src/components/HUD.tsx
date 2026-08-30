@@ -10,6 +10,7 @@ interface HUDProps {
   weaponName: string;
   elapsed: number;
   hasChangedLane: boolean;
+  bossTapHint: number;
 }
 
 function swipeHintOpacity(elapsed: number, hasChangedLane: boolean): number {
@@ -32,8 +33,10 @@ export function HUD({
   weaponName,
   elapsed,
   hasChangedLane,
+  bossTapHint,
 }: HUDProps) {
   const hintOpacity = swipeHintOpacity(elapsed, hasChangedLane);
+  const tapHint = Math.max(0, Math.min(1, bossTapHint));
 
   return (
     <View pointerEvents="none" style={styles.wrap}>
@@ -63,6 +66,9 @@ export function HUD({
       </View>
       {hintOpacity > 0.02 ? (
         <Text style={[styles.hint, { opacity: hintOpacity }]}>←  SWIPE  →</Text>
+      ) : null}
+      {tapHint > 0.02 ? (
+        <Text style={[styles.tapHint, { opacity: tapHint }]}>TAP FAST!</Text>
       ) : null}
     </View>
   );
@@ -234,6 +240,20 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 3,
     textShadowColor: 'rgba(20,40,10,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 5,
+  },
+  tapHint: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: '31%',
+    textAlign: 'center',
+    color: PALETTE.accent,
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: 2.4,
+    textShadowColor: 'rgba(20,40,10,0.55)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 5,
   },

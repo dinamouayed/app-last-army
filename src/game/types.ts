@@ -37,6 +37,8 @@ export interface GameState extends CombatState, GateRuntimeState, BossRuntimeSta
 export interface InputState {
   gestureDx: number;
   laneSwipeLocked: boolean;
+  tapCandidate: boolean;
+  gestureStartElapsed: number;
 }
 
 export interface HudSnapshot {
@@ -53,6 +55,7 @@ export interface HudSnapshot {
   enemiesKilled: number;
   runSeed: number;
   segmentKind: string;
+  bossTapHint: number;
 }
 
 export interface CameraConfig {

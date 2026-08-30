@@ -100,3 +100,25 @@ Move toward a colorful casual-mobile-game aesthetic.
 Avoid dark developer-prototype visuals.
 
 Never use a sudden full-screen tint, colored rectangle, or gate-shaped panel as hit / death / explosion feedback. Those read as debug overlays. Effects stay local to the object (particles, fireball, shockwave, shake) and ease in and out.
+
+---
+
+## 2026-08-29 — Boss tap-fireball
+
+During an active boss fight, rapid taps charge a growing circle. When the circle fills, it launches a fireball that deals a large chunk of the boss's max HP on impact.
+
+- Swipes still change lanes and never count as taps.
+- Filling the circle takes a sustained mash (about 24 taps). Each follow-up tap must arrive within `tapMaxGap` or it does not add charge. Idle grace stays slightly above that gap so a valid mash does not leak. Charge still decays quickly if the player pauses.
+- The player can launch several fireballs in one encounter.
+- The fireball deals 25% of the boss's initial max HP and cannot finish the boss (leaves at least 1 HP). It is a boost, not an execute.
+- The fireball, charge circle, and impact stay local to the army/boss. No full-screen tint.
+
+---
+
+## 2026-08-30 — Boss HP after tap-fireball
+
+Boss max HP is `baseMaxHp + distance * hpPerDistance`. It does not scale with army size.
+
+Raised `baseMaxHp` 850 → 1200 and `hpPerDistance` 2.8 → 3.8 so the tap-fireball remains a 25% boost instead of making the fight trivial.
+
+Slam cadence is tighter: idle `attackInterval` 3.2 → 1.7 (first boss 5.0 → 2.6), `holdBeforeAttack` 1.5 → 0.7, `recoverHoldDuration` 1.0 → 0.4. Wind-up and slam animation timings stay readable.

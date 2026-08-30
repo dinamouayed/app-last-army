@@ -1,4 +1,5 @@
 import { addSoldiers, removeSoldiers, setArmySize } from '../army/armyState';
+import { BOSS_CONFIG } from '../config/bosses';
 import { GAME_CONFIG } from '../config/game';
 import { createGameState } from '../engine/GameState';
 import {
@@ -9,6 +10,7 @@ import {
 import { updateArmyVisuals } from '../systems/ArmySystem';
 import { updateCombat } from '../systems/CombatSystem';
 import { spawnBossForDev } from '../systems/BossSystem';
+import { registerBossTap } from '../systems/BossTapStrikeSystem';
 import { updateParticles } from '../systems/EnemySystem';
 import { resyncWorldAfterDistanceJump } from '../systems/WorldGenerator';
 import { updateRunner } from '../systems/RunnerSystem';
@@ -24,6 +26,8 @@ export class GameSession {
     this.input = {
       gestureDx: 0,
       laneSwipeLocked: false,
+      tapCandidate: false,
+      gestureStartElapsed: 0,
     };
   }
 
@@ -44,6 +48,8 @@ export class GameSession {
 
   beginSwipe(): void {
     beginLaneGesture(this.input);
+    this.input.tapCandidate = true;
+    this.input.gestureStartElapsed = this.state.elapsed;
   }
 
   updateSwipe(gestureDx: number): void {
@@ -53,10 +59,21 @@ export class GameSession {
       gestureDx,
       GAME_CONFIG.swipeThresholdPx,
     );
+    if (Math.abs(gestureDx) >= BOSS_CONFIG.tapCancelDxPx) {
+      this.input.tapCandidate = false;
+    }
   }
 
   endSwipe(): void {
+    const hold = this.state.elapsed - this.input.gestureStartElapsed;
+    const wasTap =
+      this.input.tapCandidate
+      && Math.abs(this.input.gestureDx) < BOSS_CONFIG.tapCancelDxPx
+      && hold <= BOSS_CONFIG.tapMaxDuration;
     endLaneGesture(this.state, this.input, GAME_CONFIG.swipeThresholdPx);
+    if (wasTap) {
+      registerBossTap(this.state);
+    }
   }
 
   devAddSoldiers(amount: number): void {

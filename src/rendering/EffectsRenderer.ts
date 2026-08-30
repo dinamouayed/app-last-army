@@ -1,10 +1,11 @@
 import type { SkCanvas } from '@shopify/react-native-skia';
 
+import { armyFrontWorldZ } from '../game/army/footprint';
 import { BOSS_CONFIG } from '../game/config/bosses';
 import { COMBAT_CONFIG } from '../game/config/combat';
 import { GAME_CONFIG } from '../game/config/game';
 import { HAZARD_CONFIG } from '../game/config/hazards';
-import { worldToScreen } from '../game/math/camera';
+import { playerWorldZ, worldToScreen } from '../game/math/camera';
 import type { GameState } from '../game/types';
 import type { RenderResources } from './paints';
 import { muzzleScreenLift } from './SoldierRenderer';
@@ -159,6 +160,152 @@ function drawTntExplosion(
   resetExplosionPaints(resources);
 }
 
+function resetTapStrikePaints(resources: RenderResources): void {
+  resources.paints.contact.setAlphaf(1);
+  resources.paints.muzzleFlash.setAlphaf(1);
+  resources.paints.muzzleCore.setAlphaf(1);
+  resources.paints.particle.setAlphaf(1);
+  resources.paints.accent.setAlphaf(1);
+  resources.paints.gateNegativeFrame.setStrokeWidth(4);
+  resources.paints.gateNegativeFrame.setAlphaf(1);
+}
+
+function drawTapChargeCircle(
+  canvas: SkCanvas,
+  resources: RenderResources,
+  state: GameState,
+  width: number,
+  height: number,
+): void {
+  const strike = state.tapStrike;
+  const charge = Math.max(strike.chargeVisual, strike.pulse > 0 ? 0.08 : 0);
+  if (charge <= 0.02 || !state.boss.active || state.boss.dying) {
+    return;
+  }
+
+  const playerZ = playerWorldZ(state.distance, GAME_CONFIG.camera);
+  const point = worldToScreen(
+    state.armyX,
+    armyFrontWorldZ(playerZ, state.formationSlots),
+    state.distance,
+    width,
+    height,
+    GAME_CONFIG.camera,
+  );
+  const pulse = strike.pulse / BOSS_CONFIG.tapPulseDuration;
+  const radius = (26 + charge * 86 + pulse * 10) * point.scale;
+  const lift = muzzleScreenLift(point.scale) * 0.7;
+  const cx = point.screenX;
+  const cy = point.screenY - lift;
+  const alpha = 0.22 + charge * 0.55 + pulse * 0.22;
+
+  resources.paints.gateNegativeFrame.setStrokeWidth(Math.max(2.4, (5.5 + charge * 3.2) * point.scale));
+  resources.paints.gateNegativeFrame.setAlphaf(0.78 * alpha);
+  canvas.drawCircle(cx, cy, radius, resources.paints.gateNegativeFrame);
+
+  resources.paints.contact.setAlphaf(0.28 * alpha);
+  canvas.drawCircle(cx, cy, radius * 0.86, resources.paints.contact);
+  resources.paints.muzzleFlash.setAlphaf(0.4 * alpha);
+  canvas.drawCircle(cx, cy, radius * (0.42 + charge * 0.28), resources.paints.muzzleFlash);
+  resources.paints.muzzleCore.setAlphaf(0.55 * alpha * charge);
+  canvas.drawCircle(cx, cy, radius * 0.2, resources.paints.muzzleCore);
+
+  resetTapStrikePaints(resources);
+}
+
+function drawTapFireball(
+  canvas: SkCanvas,
+  resources: RenderResources,
+  state: GameState,
+  width: number,
+  height: number,
+): void {
+  const strike = state.tapStrike;
+  if (!strike.fireballActive) {
+    return;
+  }
+
+  const point = worldToScreen(
+    strike.fireballX,
+    strike.fireballZ,
+    state.distance,
+    width,
+    height,
+    GAME_CONFIG.camera,
+  );
+  const flight = Math.min(1, strike.fireballT / BOSS_CONFIG.tapFireballFlight);
+  const lift = muzzleScreenLift(point.scale) * 0.85;
+  const cx = point.screenX;
+  const cy = point.screenY - lift;
+  const radius = (18 + flight * 16) * point.scale;
+
+  resources.paints.contact.setAlphaf(0.38);
+  canvas.drawCircle(cx, cy, radius * 1.55, resources.paints.contact);
+  resources.paints.gateNegative.setAlphaf(0.62);
+  canvas.drawCircle(cx, cy, radius * 1.12, resources.paints.gateNegative);
+  resources.paints.muzzleFlash.setAlphaf(0.9);
+  canvas.drawCircle(cx, cy, radius * 0.72, resources.paints.muzzleFlash);
+  resources.paints.muzzleCore.setAlphaf(0.96);
+  canvas.drawCircle(cx, cy, radius * 0.34, resources.paints.muzzleCore);
+
+  resources.paints.gateNegative.setAlphaf(1);
+  resetTapStrikePaints(resources);
+}
+
+function drawTapFireballImpact(
+  canvas: SkCanvas,
+  resources: RenderResources,
+  state: GameState,
+  width: number,
+  height: number,
+): void {
+  const strike = state.tapStrike;
+  if (strike.impactT <= 0) {
+    return;
+  }
+
+  const point = worldToScreen(
+    strike.fireballX,
+    strike.fireballZ,
+    state.distance,
+    width,
+    height,
+    GAME_CONFIG.camera,
+  );
+  const progress = 1 - strike.impactT / BOSS_CONFIG.tapFireballImpact;
+  const fade = Math.max(0, 1 - progress * 1.1);
+  const expand = progress * (2 - progress);
+  const lift = muzzleScreenLift(point.scale) * 0.7;
+  const cx = point.screenX;
+  const cy = point.screenY - lift;
+  const s = point.scale;
+  const fireR = (22 + expand * 52) * s;
+
+  resources.paints.gateNegativeFrame.setStrokeWidth(Math.max(2.2, (8 - progress * 5.5) * s));
+  resources.paints.gateNegativeFrame.setAlphaf(0.72 * fade * (1 - progress));
+  canvas.drawCircle(cx, cy, fireR * 1.15, resources.paints.gateNegativeFrame);
+  resources.paints.gateNegative.setAlphaf(0.5 * fade);
+  canvas.drawCircle(cx, cy, fireR, resources.paints.gateNegative);
+  resources.paints.contact.setAlphaf(0.76 * fade);
+  canvas.drawCircle(cx, cy, fireR * 0.68, resources.paints.contact);
+  resources.paints.muzzleFlash.setAlphaf(0.88 * fade * Math.max(0.12, 1 - progress * 0.6));
+  canvas.drawCircle(cx, cy, fireR * 0.4, resources.paints.muzzleFlash);
+  resources.paints.muzzleCore.setAlphaf(0.94 * fade * Math.max(0, 1 - progress * 1.4));
+  canvas.drawCircle(cx, cy, fireR * 0.18, resources.paints.muzzleCore);
+
+  for (let i = 0; i < 10; i += 1) {
+    const angle = (i / 10) * Math.PI * 2 + progress * 1.1;
+    const dist = fireR * (0.4 + expand * 0.8);
+    const sx = cx + Math.cos(angle) * dist;
+    const sy = cy + Math.sin(angle) * dist * 0.5 - expand * 12 * s;
+    resources.paints.muzzleFlash.setAlphaf(0.8 * fade * (1 - progress * 0.3));
+    canvas.drawCircle(sx, sy, (3.2 + (1 - progress) * 4.5) * s, resources.paints.muzzleFlash);
+  }
+
+  resources.paints.gateNegative.setAlphaf(1);
+  resetTapStrikePaints(resources);
+}
+
 export function drawCombatEffects(
   canvas: SkCanvas,
   resources: RenderResources,
@@ -168,6 +315,9 @@ export function drawCombatEffects(
 ): void {
   drawSlamBurst(canvas, resources, state, width, height);
   drawTntExplosion(canvas, resources, state, width, height);
+  drawTapChargeCircle(canvas, resources, state, width, height);
+  drawTapFireball(canvas, resources, state, width, height);
+  drawTapFireballImpact(canvas, resources, state, width, height);
 
   if (state.contactPulse > 0) {
     const point = worldToScreen(

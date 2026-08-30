@@ -14,6 +14,7 @@ import { GAME_CONFIG } from '../game/config/game';
 import type { HudSnapshot } from '../game/types';
 import { hasPendingDeathPresentation } from '../game/army/armyState';
 import { currentSegmentKind } from '../game/world/worldState';
+import { bossTapHintOpacity } from '../game/systems/BossTapStrikeSystem';
 import { createRenderResources } from './paints';
 import { recordFrame } from './recordFrame';
 import {
@@ -101,6 +102,7 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
           enemiesKilled: session.state.enemiesKilled,
           runSeed: session.state.runSeed,
           segmentKind: currentSegmentKind(session.state),
+          bossTapHint: bossTapHintOpacity(session.state),
         });
       }
 

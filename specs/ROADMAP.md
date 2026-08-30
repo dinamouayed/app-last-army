@@ -369,6 +369,7 @@ Create periodic high-pressure survival encounters without ending the run after v
 * [x] Boss death effects
 * [x] Run continues after boss victory
 * [x] Game over if boss destroys entire army
+* [x] Rapid-tap charge circle that launches a fireball at the boss
 
 ## Desired tension
 
