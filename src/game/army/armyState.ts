@@ -1,5 +1,7 @@
 import { ARMY_CONFIG } from '../config/army';
 import { COMBAT_CONFIG } from '../config/combat';
+import { FEEL_CONFIG } from '../config/feel';
+import { addCameraShake } from '../feel/feedback';
 import { playerWorldZ } from '../math/camera';
 import { isGameOver } from '../math/format';
 import { GAME_CONFIG } from '../config/game';
@@ -125,6 +127,7 @@ function triggerLossFeedback(
   }
   state.armyDeathPulse = ARMY_CONFIG.deathPulseDuration;
   state.armyShake = ARMY_CONFIG.shakeDuration;
+  addCameraShake(state, FEEL_CONFIG.contactShake);
   state.contactPulse = COMBAT_CONFIG.contactPulseDuration;
   state.contactX = contactX;
   state.contactZ = contactZ;

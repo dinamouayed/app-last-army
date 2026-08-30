@@ -6,13 +6,16 @@ import {
 } from '../army/firing';
 import { getContactEnemyOffsetXs } from '../army/contactFiring';
 import { COMBAT_CONFIG } from '../config/combat';
+import { FEEL_CONFIG } from '../config/feel';
 import { GAME_CONFIG } from '../config/game';
 import {
   getEffectiveWeapon,
   getWeaponUpgradeTier,
+  type WeaponId,
 } from '../config/weapons';
 import { acquireEntity } from '../entities/combat';
 import type { Projectile } from '../entities/combat';
+import { pushFeedback } from '../feel/feedback';
 import { playerWorldZ } from '../math/camera';
 import type { GameState } from '../types';
 
@@ -29,6 +32,7 @@ function spawnProjectile(
   damage: number,
   speed: number,
   vx: number,
+  weaponId: WeaponId,
 ): Projectile | null {
   const projectile = acquireEntity(state.projectiles, COMBAT_CONFIG.maxProjectiles, () => ({
     id: 0,
@@ -41,6 +45,7 @@ function spawnProjectile(
     speed: 0,
     vx: 0,
     radius: COMBAT_CONFIG.projectileRadius,
+    widthScale: 1,
   }));
   if (!projectile) {
     return null;
@@ -56,6 +61,7 @@ function spawnProjectile(
   projectile.speed = speed;
   projectile.vx = vx;
   projectile.radius = COMBAT_CONFIG.projectileRadius;
+  projectile.widthScale = FEEL_CONFIG.projectileWidthScale[weaponId];
   return projectile;
 }
 
@@ -110,6 +116,7 @@ export function fireCurrentWeapon(
           damage,
           weapon.projectileSpeed,
           0,
+          weapon.id,
         );
         if (!first && projectile) {
           first = projectile;
@@ -137,6 +144,7 @@ export function fireCurrentWeapon(
         damage,
         weapon.projectileSpeed,
         0,
+        weapon.id,
       );
       if (!first && projectile) {
         first = projectile;
@@ -146,7 +154,8 @@ export function fireCurrentWeapon(
   }
 
   if (first) {
-    state.muzzleFlash = COMBAT_CONFIG.muzzleFlashDuration;
+    state.muzzleFlash = FEEL_CONFIG.muzzleFlashDuration[weapon.id];
+    pushFeedback(state, 'weaponFire', { weaponId: weapon.id });
   }
   return first;
 }

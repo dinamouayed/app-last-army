@@ -4,6 +4,8 @@ import { GAME_CONFIG } from '../config/game';
 import { acquireEntity } from '../entities/combat';
 import type { Particle } from '../entities/combat';
 import { COMBAT_CONFIG } from '../config/combat';
+import { FEEL_CONFIG } from '../config/feel';
+import { addCameraShake, pushFeedback } from '../feel/feedback';
 import { createEmptyHazard, livingHazardCount } from '../entities/hazards';
 import type { Hazard } from '../entities/hazards';
 import { playerWorldZ } from '../math/camera';
@@ -37,6 +39,7 @@ export function spawnExplosionBurst(state: GameState, x: number, z: number): voi
   state.explosionBurstX = x;
   state.explosionBurstZ = z;
   state.armyShake = Math.max(state.armyShake, HAZARD_CONFIG.explosionShakeDuration);
+  addCameraShake(state, FEEL_CONFIG.explosionShake);
 
   const count = HAZARD_CONFIG.explosionParticleCount;
   for (let i = 0; i < count; i += 1) {
@@ -74,6 +77,7 @@ function activateHazard(state: GameState, hazard: Hazard): void {
   hazard.fadeT = 0;
   removeSoldiers(state, state.armySize, hazard.x, hazard.z);
   spawnExplosionBurst(state, hazard.x, hazard.z);
+  pushFeedback(state, 'explosion');
   checkArmyGameOver(state);
 }
 

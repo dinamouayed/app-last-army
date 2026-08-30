@@ -9,6 +9,7 @@ import { updateHazards } from './HazardSystem';
 import { updateProjectiles } from './ProjectileSystem';
 import { updateShooting } from './ShootingSystem';
 import { updateWorld } from './WorldGenerator';
+import { updateFeelVisuals } from './FeelSystem';
 
 export function updateCombat(
   state: GameState,
@@ -29,4 +30,5 @@ export function updateCombat(
   resolveProjectileEnemyCollisions(state);
   updateArmyVisuals(state, dt);
   updateParticles(state, dt);
+  updateFeelVisuals(state, dt);
 }

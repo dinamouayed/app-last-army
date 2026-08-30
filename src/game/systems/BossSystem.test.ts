@@ -217,6 +217,12 @@ describe('boss combat', () => {
     spawnBoss(state);
     killBoss(state, state.boss);
     expect(state.boss.dying).toBe(true);
+    expect(state.explosionBurst).toBeGreaterThan(0);
+    expect(state.cameraShakeMag).toBeGreaterThan(0);
+    expect(state.slowMoT).toBeGreaterThan(0);
+    expect(state.feedback.some((event, index) => index < state.feedbackCount && event.kind === 'bossDeath')).toBe(
+      true,
+    );
     updateBoss(state, BOSS_CONFIG.deathDuration);
     expect(state.boss.active).toBe(false);
     expect(state.nextBossDistance).toBe(0);

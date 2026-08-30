@@ -47,8 +47,14 @@ export function startGameLoop(
       dt = maxDeltaSeconds;
     }
 
-    onTick(dt);
-    frameId = requestAnimationFrame(frame);
+    try {
+      onTick(dt);
+    } catch (error) {
+      console.error('[GameLoop] tick failed', error);
+    }
+    if (running) {
+      frameId = requestAnimationFrame(frame);
+    }
   };
 
   frameId = requestAnimationFrame(frame);

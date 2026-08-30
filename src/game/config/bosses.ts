@@ -42,7 +42,7 @@ export const BOSS_CONFIG = {
   hitFlashDuration: 0.1,
   hitKnockback: 0.12,
   deathDuration: 0.55,
-  deathParticleCount: 18,
+  deathParticleCount: 28,
   unlockPulseDuration: 0.55,
   slamShakeDuration: 0.22,
   /** Screen scale for boss display cells (atlas is 1024px, drawn at 256 logical). */

@@ -11,6 +11,8 @@ import { resetTapStrike } from '../entities/boss';
 import { playerWorldZ } from '../math/camera';
 import type { GameState } from '../types';
 import { applyProjectileBossHit } from './BossSystem';
+import { FEEL_CONFIG } from '../config/feel';
+import { addCameraShake, pushFeedback } from '../feel/feedback';
 
 function lerpToward(current: number, target: number, dt: number, speed: number): number {
   const t = 1 - Math.exp(-speed * dt);
@@ -143,6 +145,8 @@ function detonateFireball(state: GameState): void {
   strike.fireballT = 0;
   strike.impactT = BOSS_CONFIG.tapFireballImpact;
   state.armyShake = Math.max(state.armyShake, BOSS_CONFIG.slamShakeDuration * 1.15);
+  addCameraShake(state, FEEL_CONFIG.fireballShake);
+  pushFeedback(state, 'fireballImpact');
   spawnFireballImpactParticles(state, x, z);
 
   if (!boss.active || boss.dying) {

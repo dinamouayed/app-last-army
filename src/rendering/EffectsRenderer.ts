@@ -1,5 +1,7 @@
 import type { SkCanvas } from '@shopify/react-native-skia';
 
+import { matchFont } from './skia';
+
 import { armyFrontWorldZ } from '../game/army/footprint';
 import { BOSS_CONFIG } from '../game/config/bosses';
 import { COMBAT_CONFIG } from '../game/config/combat';
@@ -9,6 +11,13 @@ import { playerWorldZ, worldToScreen } from '../game/math/camera';
 import type { GameState } from '../game/types';
 import type { RenderResources } from './paints';
 import { muzzleScreenLift } from './SoldierRenderer';
+
+const floatFont = matchFont({
+  fontFamily: 'System',
+  fontSize: 22,
+  fontWeight: 'bold',
+  fontStyle: 'italic',
+});
 
 function drawSlamBurst(
   canvas: SkCanvas,
@@ -357,7 +366,14 @@ export function drawCombatEffects(
       GAME_CONFIG.camera,
     );
     const life = Math.max(0, particle.life / particle.maxLife);
-    const sizeMul = particle.kind === 'slam' ? 1.35 : particle.kind === 'explosion' ? 1.7 : 1;
+    const sizeMul =
+      particle.kind === 'slam'
+        ? 1.35
+        : particle.kind === 'explosion'
+          ? 1.7
+          : particle.kind === 'hit'
+            ? 0.72
+            : 1;
     const size = (3.5 + (1 - life) * 3) * point.scale * sizeMul;
     const paint =
       particle.kind === 'slam'
@@ -366,11 +382,13 @@ export function drawCombatEffects(
           ? i % 2 === 0
             ? resources.paints.muzzleFlash
             : resources.paints.contact
-          : particle.kind === 'gatePositive'
-            ? resources.paints.gateParticlePositive
-            : particle.kind === 'gateNegative'
-              ? resources.paints.gateParticleNegative
-              : resources.paints.particle;
+          : particle.kind === 'hit'
+            ? resources.paints.muzzleFlash
+            : particle.kind === 'gatePositive'
+              ? resources.paints.gateParticlePositive
+              : particle.kind === 'gateNegative'
+                ? resources.paints.gateParticleNegative
+                : resources.paints.particle;
     paint.setAlphaf(0.75 * life);
     canvas.drawOval(
       {
@@ -385,6 +403,47 @@ export function drawCombatEffects(
   resources.paints.particle.setAlphaf(1);
   resources.paints.contact.setAlphaf(1);
   resources.paints.muzzleFlash.setAlphaf(1);
+  resources.paints.gateParticlePositive.setAlphaf(1);
+  resources.paints.gateParticleNegative.setAlphaf(1);
+
+  drawFloatingTexts(canvas, resources, state, width, height);
+}
+
+function drawFloatingTexts(
+  canvas: SkCanvas,
+  resources: RenderResources,
+  state: GameState,
+  width: number,
+  height: number,
+): void {
+  for (let i = 0; i < state.floatingTexts.length; i += 1) {
+    const item = state.floatingTexts[i];
+    if (!item?.active) {
+      continue;
+    }
+    const point = worldToScreen(
+      item.x,
+      item.z,
+      state.distance,
+      width,
+      height,
+      GAME_CONFIG.camera,
+    );
+    const t = Math.max(0, item.life / item.maxLife);
+    const rise = (1 - t) * 42 * point.scale;
+    const alpha = t * t * (3 - 2 * t);
+    const label = item.text;
+    const x = point.screenX - label.length * 6.4;
+    const y = point.screenY - muzzleScreenLift(point.scale) - rise;
+    const fill = item.positive
+      ? resources.paints.gateParticlePositive
+      : resources.paints.gateParticleNegative;
+    resources.paints.gateLabelShadow.setAlphaf(0.85 * alpha);
+    canvas.drawText(label, x + 1.6, y + 1.6, resources.paints.gateLabelShadow, floatFont);
+    fill.setAlphaf(alpha);
+    canvas.drawText(label, x, y, fill, floatFont);
+  }
+  resources.paints.gateLabelShadow.setAlphaf(1);
   resources.paints.gateParticlePositive.setAlphaf(1);
   resources.paints.gateParticleNegative.setAlphaf(1);
 }

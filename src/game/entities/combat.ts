@@ -13,6 +13,7 @@ export interface Projectile {
   speed: number;
   vx: number;
   radius: number;
+  widthScale: number;
 }
 
 export interface Enemy {
@@ -44,7 +45,7 @@ export interface Particle {
   vz: number;
   life: number;
   maxLife: number;
-  kind: 'default' | 'gatePositive' | 'gateNegative' | 'slam' | 'explosion';
+  kind: 'default' | 'gatePositive' | 'gateNegative' | 'slam' | 'explosion' | 'hit';
 }
 
 export interface CombatState {

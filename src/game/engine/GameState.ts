@@ -12,6 +12,7 @@ import { scheduleFirstGate } from '../systems/GateSystem';
 import { scheduleFirstBoss } from '../systems/BossSystem';
 import { initWorld } from '../systems/WorldGenerator';
 import { createWorldRuntimeState } from '../world/worldState';
+import { createFeelRuntimeState } from '../feel/feedback';
 
 export function createGameState(seed?: number): GameState {
   const armyX = laneIndexToX(GAME_CONFIG.startingLane, GAME_CONFIG.laneSpacing);
@@ -56,6 +57,7 @@ export function createGameState(seed?: number): GameState {
     ...createHazardRuntimeState(),
     ...createBossRuntimeState(),
     ...createWorldRuntimeState(seed),
+    ...createFeelRuntimeState(),
   };
 
   scheduleFirstGate(state);

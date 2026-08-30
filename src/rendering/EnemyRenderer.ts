@@ -94,6 +94,18 @@ function drawOneEnemy(
     { scaleMul: enemyDrawScaleMul(enemy.kind, point.scale) },
   );
 
+  if (enemy.hitFlash > 0 && !enemy.dying) {
+    const flash = enemy.hitFlash / COMBAT_CONFIG.hitFlashDuration;
+    resources.paints.hitFlash.setAlphaf(0.42 * flash);
+    canvas.drawCircle(
+      point.screenX,
+      point.screenY - muzzleScreenLift(point.scale) * 0.55,
+      11 * point.scale * enemyPerspectiveScale(point.scale),
+      resources.paints.hitFlash,
+    );
+    resources.paints.hitFlash.setAlphaf(1);
+  }
+
   if (!enemy.dying) {
     drawHpBar(
       canvas,

@@ -15,6 +15,8 @@ import type { HudSnapshot } from '../game/types';
 import { hasPendingDeathPresentation } from '../game/army/armyState';
 import { currentSegmentKind } from '../game/world/worldState';
 import { bossTapHintOpacity } from '../game/systems/BossTapStrikeSystem';
+import { consumeFeedback } from '../feel/consumeFeedback';
+import { disposeGameAudio, initGameAudio } from '../feel/GameAudio';
 import { createRenderResources } from './paints';
 import { recordFrame } from './recordFrame';
 import {
@@ -55,6 +57,7 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
     const pictureHolder = createSkPictureHolder();
     const stats = createFrameStats();
     let hudAcc = 0;
+    void initGameAudio();
 
     const stop = startGameLoop((dt) => {
       const session = sessionRef.current;
@@ -80,6 +83,12 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
         publishSkiaPicture(viewRef.current, picture, pictureHolder);
       } catch (error) {
         console.error('[GameCanvas] recordFrame failed', error);
+      }
+
+      try {
+        consumeFeedback(session.state);
+      } catch {
+        // Audio / haptics must never stall or kill the next animation frame.
       }
 
       hudAcc += dt;
@@ -118,6 +127,7 @@ export function GameCanvas({ sessionRef, onHud, onGameOver }: GameCanvasProps) {
 
     return () => {
       stop();
+      disposeGameAudio();
       disposeSkPictureHolder(pictureHolder);
       disposeRenderResources(resources);
     };

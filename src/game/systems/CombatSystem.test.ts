@@ -35,6 +35,9 @@ describe('pistol shooting', () => {
 
     expect(countActive(sixty.projectiles)).toBe(3);
     expect(countActive(thirty.projectiles)).toBe(3);
+    expect(sixty.feedback.some((event, index) => index < sixty.feedbackCount && event.kind === 'weaponFire')).toBe(
+      true,
+    );
   });
 
   it('moves projectiles by speed * dt', () => {
@@ -73,6 +76,7 @@ describe('basic enemy combat', () => {
     expect(enemy!.dying).toBe(true);
     expect(state.enemiesKilled).toBe(1);
     expect(countActive(state.particles)).toBeGreaterThan(0);
+    expect(state.particles.some((particle) => particle.active && particle.kind === 'hit')).toBe(true);
   });
 
   it('consumes a projectile that sweeps through an enemy', () => {

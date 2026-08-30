@@ -7,11 +7,14 @@ import {
 import { armyFrontWorldZ } from '../army/footprint';
 import { GATE_CONFIG } from '../config/gates';
 import { COMBAT_CONFIG } from '../config/combat';
+import { FEEL_CONFIG } from '../config/feel';
 import { GAME_CONFIG } from '../config/game';
 import { acquireEntity } from '../entities/combat';
 import type { Particle } from '../entities/combat';
 import type { Gate } from '../entities/gates';
-import { createEmptyGate, isWeaponGate, livingGateCount } from '../entities/gates';
+import { createEmptyGate, formatGateLabel, isWeaponGate, livingGateCount } from '../entities/gates';
+import { pushFeedback, spawnFloatingText } from '../feel/feedback';
+import { spawnParticleBurst } from './FeelSystem';
 import { playerWorldZ } from '../math/camera';
 import { asphaltLaneBounds, asphaltLaneCenterX } from '../math/roadBounds';
 import type { GameState, LaneIndex } from '../types';
@@ -153,31 +156,13 @@ function spawnGateActivationParticles(
   z: number,
   positive: boolean,
 ): void {
-  const count = positive ? 6 : 4;
-  for (let i = 0; i < count; i += 1) {
-    const particle = acquireEntity(state.particles, COMBAT_CONFIG.maxParticles, () => ({
-      active: false,
-      x: 0,
-      z: 0,
-      vx: 0,
-      vz: 0,
-      life: 0,
-      maxLife: COMBAT_CONFIG.particleLife,
-      kind: 'default' as const,
-    } satisfies Particle));
-    if (!particle) {
-      return;
-    }
-    const angle = (i / count) * Math.PI * 2;
-    particle.active = true;
-    particle.kind = positive ? 'gatePositive' : 'gateNegative';
-    particle.x = x + Math.cos(angle) * 0.08;
-    particle.z = z + Math.sin(angle) * 0.06;
-    particle.vx = Math.cos(angle) * (positive ? 6.5 : 4.5);
-    particle.vz = Math.sin(angle) * 3.5;
-    particle.life = COMBAT_CONFIG.particleLife * (positive ? 1 : 0.75);
-    particle.maxLife = particle.life;
-  }
+  spawnParticleBurst(state, x, z, {
+    count: positive ? FEEL_CONFIG.gateBurstCountPositive : FEEL_CONFIG.gateBurstCountNegative,
+    kind: positive ? 'gatePositive' : 'gateNegative',
+    speed: positive ? 6.8 : 4.8,
+    life: COMBAT_CONFIG.particleLife * (positive ? 1.15 : 0.85),
+    radius: 0.08,
+  });
 }
 
 function spawnBarrelExplosion(state: GameState, x: number, z: number): void {
@@ -238,6 +223,7 @@ function completeWeaponUnlock(state: GameState, gate: Gate): void {
   state.gatePulseZ = gate.z;
   state.gatePulsePositive = true;
   spawnBarrelExplosion(state, gate.x, gate.z);
+  pushFeedback(state, 'weaponUnlock');
 }
 
 export function applyProjectileGateHit(
@@ -301,6 +287,7 @@ function activateWeaponGate(state: GameState, gate: Gate): void {
     state.gatePulseZ = gate.z;
     state.gatePulsePositive = false;
     spawnGateActivationParticles(state, gate.x, gate.z, false);
+    pushFeedback(state, 'gateActivate', { positive: false });
     removeSoldiers(
       state,
       failedWeaponUnlockSoldierLoss(state.armySize, gate.weaponHp, gate.weaponMaxHp),
@@ -337,6 +324,8 @@ function activateMathGate(state: GameState, gate: Gate): void {
   state.gatePulseZ = gate.z;
   state.gatePulsePositive = positive;
   spawnGateActivationParticles(state, gate.x, gate.z, positive);
+  spawnFloatingText(state, gate.x, gate.z, formatGateLabel(gate), positive);
+  pushFeedback(state, 'gateActivate', { positive });
 
   if (gate.shootable) {
     if (gate.signedValue > 0) {

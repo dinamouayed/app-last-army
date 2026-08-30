@@ -20,6 +20,7 @@ import {
 } from './paints';
 import { drawProjectiles } from './ProjectileRenderer';
 import { drawWorld } from './WorldRenderer';
+import { cameraShakeOffset } from '../game/systems/FeelSystem';
 
 function syncLayout(
   resources: RenderResources,
@@ -56,6 +57,9 @@ export function recordFrame(
   height: number,
 ): SkPicture {
   const canvas = beginFrame(resources, width, height);
+  const shake = cameraShakeOffset(state, state.elapsed);
+  canvas.save();
+  canvas.translate(shake.x, shake.y);
   drawWorld(canvas, resources, state, width, height);
   drawHazards(canvas, resources, state, width, height);
   drawGates(canvas, resources, state, width, height);
@@ -65,6 +69,7 @@ export function recordFrame(
   drawArmy(canvas, resources, state, width, height);
   drawGateActivationPulse(canvas, resources, state, width, height);
   drawCombatEffects(canvas, resources, state, width, height);
+  canvas.restore();
   return resources.recorder.finishRecordingAsPicture();
 }
 

@@ -13,6 +13,7 @@ import { enemyOverlapsArmyFootprint } from '../army/footprint';
 import { applyProjectileGateHit } from './GateSystem';
 import { applyProjectileBossHit } from './BossSystem';
 import { killEnemy } from './EnemySystem';
+import { spawnHitSparks } from './FeelSystem';
 import type { FootprintSlice } from '../army/footprint';
 
 export function applyProjectileHit(state: GameState, enemyIndex: number, damage: number): void {
@@ -22,6 +23,7 @@ export function applyProjectileHit(state: GameState, enemyIndex: number, damage:
   }
   enemy.hp -= damage;
   enemy.hitFlash = COMBAT_CONFIG.hitFlashDuration;
+  spawnHitSparks(state, enemy.x, enemy.z);
   if (enemy.behavior !== 'attacking') {
     enemy.z += COMBAT_CONFIG.hitKnockback;
   }

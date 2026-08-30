@@ -37,8 +37,8 @@ export function drawProjectiles(
     );
     const fromY = from.screenY - muzzleScreenLift(from.scale, ARMY_CONFIG.visualScale);
     const toY = to.screenY - muzzleScreenLift(to.scale, ARMY_CONFIG.visualScale);
-    const trailW = Math.max(2.4, 4.2 * to.scale);
-    const coreW = Math.max(1.2, 2.1 * to.scale);
+    const trailW = Math.max(2.4, 4.2 * to.scale * projectile.widthScale);
+    const coreW = Math.max(1.2, 2.1 * to.scale * projectile.widthScale);
 
     resources.paints.tracer.setStrokeWidth(trailW);
     resources.paints.tracer.setAlphaf(0.82);
@@ -47,7 +47,12 @@ export function drawProjectiles(
     resources.paints.tracerCore.setAlphaf(1);
     canvas.drawLine(from.screenX, fromY, to.screenX, toY, resources.paints.tracerCore);
 
-    canvas.drawCircle(to.screenX, toY, Math.max(1.8, 3.2 * to.scale), resources.paints.muzzleCore);
+    canvas.drawCircle(
+      to.screenX,
+      toY,
+      Math.max(1.8, 3.2 * to.scale * projectile.widthScale),
+      resources.paints.muzzleCore,
+    );
   }
   resources.paints.tracer.setAlphaf(1);
   resources.paints.tracerCore.setAlphaf(1);

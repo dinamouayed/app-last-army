@@ -17,6 +17,9 @@ import { asphaltLaneCenterX } from '../math/roadBounds';
 import { recycleSegment } from '../world/worldState';
 import { clearGatesNearWorldZ } from './GateSystem';
 import { clearHazardsNearWorldZ, spawnExplosionBurst } from './HazardSystem';
+import { applyBossDeathFeel, spawnHitSparks } from './FeelSystem';
+import { FEEL_CONFIG } from '../config/feel';
+import { addCameraShake, pushFeedback } from '../feel/feedback';
 import type { GameState } from '../types';
 
 function resolveBossSpawnDistance(state: GameState, candidate: number): number {
@@ -238,6 +241,9 @@ export function killBoss(state: GameState, boss: Boss): void {
   boss.behavior = 'approaching';
   boss.attackPhase = 'idle';
   spawnBossDeathParticles(state, boss.x, boss.z);
+  spawnExplosionBurst(state, boss.x, boss.z);
+  applyBossDeathFeel(state);
+  pushFeedback(state, 'bossDeath');
   state.pendingRecovery = true;
 }
 
@@ -248,6 +254,7 @@ export function applyProjectileBossHit(state: GameState, damage: number): void {
   }
   boss.hp -= damage;
   boss.hitFlash = Math.max(boss.hitFlash, BOSS_CONFIG.hitFlashDuration);
+  spawnHitSparks(state, boss.x, boss.z);
   if (boss.hp <= 0) {
     killBoss(state, boss);
   }
@@ -268,6 +275,8 @@ function executeSlam(state: GameState, boss: Boss): void {
   state.slamBurstX = boss.x;
   state.slamBurstZ = impactZ;
   state.armyShake = BOSS_CONFIG.slamShakeDuration;
+  addCameraShake(state, FEEL_CONFIG.slamShake);
+  pushFeedback(state, 'bossSlam');
   state.contactPulse = COMBAT_CONFIG.contactPulseDuration * 1.85;
   state.contactX = boss.x;
   state.contactZ = impactZ;

@@ -78,6 +78,7 @@ describe('gate activation', () => {
     expect(state.armySize).toBe(15);
     expect(state.visibleCount).toBe(visibleSoldierCount(15));
     expect(state.gatePulse).toBeGreaterThan(0);
+    expect(state.floatingTexts.some((item) => item.active && item.text === '+10')).toBe(true);
     expect(state.gatePulsePositive).toBe(true);
   });
 

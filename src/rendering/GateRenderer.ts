@@ -663,27 +663,22 @@ export function drawGateActivationPulse(
     height,
     GAME_CONFIG.camera,
   );
-  const laneHalfPx = laneHalfWidthPx(width, point.scale);
-  const panelW = laneHalfPx * 2 * 0.94;
-  const panelH = 92 * GAME_CONFIG.soldierDrawScale * point.scale;
   const paint = state.gatePulsePositive
     ? resources.paints.gatePositiveGlow
     : resources.paints.gateNegativeGlow;
-  const expand = (1 - pulse) * 18 * point.scale;
+  const fade = pulse * pulse;
+  const expand = (1 - pulse) * (2 - (1 - pulse));
+  const ringR = (18 + expand * 46) * point.scale;
 
-  paint.setAlphaf(0.55 * pulse);
-  canvas.drawRRect(
-    Skia.RRectXY(
-      {
-        x: point.screenX - panelW * 0.5 - expand,
-        y: point.screenY - panelH - expand * 0.35,
-        width: panelW + expand * 2,
-        height: panelH + expand * 0.7,
-      },
-      12,
-      12,
-    ),
-    paint,
-  );
+  paint.setAlphaf(0.48 * fade);
+  canvas.drawCircle(point.screenX, point.screenY - 18 * point.scale, ringR * 0.42, paint);
+  const ringPaint = state.gatePulsePositive
+    ? resources.paints.gatePositiveFrame
+    : resources.paints.gateNegativeFrame;
+  ringPaint.setStrokeWidth(Math.max(2.2, (6.5 - (1 - pulse) * 4) * point.scale));
+  ringPaint.setAlphaf(0.7 * fade);
+  canvas.drawCircle(point.screenX, point.screenY - 18 * point.scale, ringR, ringPaint);
   paint.setAlphaf(1);
+  ringPaint.setAlphaf(1);
+  ringPaint.setStrokeWidth(4);
 }

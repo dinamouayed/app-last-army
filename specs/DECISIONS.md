@@ -138,3 +138,16 @@ slam  = max(chunk, floor)
 ```
 
 Every slam in that fight uses the same number (clamped to soldiers left). A huge opening still loses a huge chunk. A leftover of 50 still eats that same chunk, so the boss does not lose credibility. Distance raises both the fraction and the floor, so an undergrown army at 10 km is in more danger than one at 300 m. Growing still helps: the floor is what punishes a small army, not a tax on success.
+
+---
+
+## 2026-08-30 — Game feel: local effects, camera shake, SFX
+
+Phase 9 polish does not add mechanics. It thickens feedback that is already in the run.
+
+- Hit, death, explosion, and gate-activation feedback stay local: particles, fireball, shockwave, number pop, camera offset. No full-screen tint and no expanding gate-shaped panel used as a flash.
+- Screen shake is a short camera translation that eases out. It is not a colored overlay.
+- A brief slow-motion dip on boss death is allowed. It must ease back to 1x before the next segment.
+- Each of the four weapons has its own fire one-shot. Automatic weapons reuse a small player pool so a huge army does not spawn one audio instance per pellet.
+- Weapon SFX stay round and quiet: low punch + filtered noise, no sharp transients. Auto-fire is throttled and pitch-varied so overlapping shots do not stack into a wall of noise.
+- Boss death, slam, and TNT use separate impact one-shots. Simulation never imports Expo; a feedback queue is drained on the view side.

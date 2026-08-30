@@ -42,11 +42,11 @@ Status values:
 
 # Current Status
 
-**Current phase:** Phase 8 — Procedural World & Difficulty
+**Current phase:** Phase 9 — Game Feel & Polish
 
 **Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
 
-Phases 1, 1.5, 2, 3, 4, 5 and 6 are validated. Phase 7 boss encounters are implemented and waiting for manual validation. Phase 8 procedural world generation and difficulty scaling are implemented and waiting for manual validation.
+Phases 1, 1.5, 2, 3, 4, 5, 6, 7 and 8 are validated.
 
 ---
 
@@ -349,7 +349,7 @@ Weapon unlocks appear as **wooden barrel gates** in lane choice sets (alongside 
 
 # Phase 7 — Boss System
 
-**Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
+**Status:** 🟢 VALIDATED
 
 ## Objective
 
@@ -379,7 +379,7 @@ A boss encounter should allow situations where the player survives with only a f
 
 # Phase 8 — Procedural World & Difficulty
 
-**Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
+**Status:** 🟢 VALIDATED
 
 ## Objective
 
@@ -425,53 +425,62 @@ Difficulty curves must remain centralized and configurable.
 
 # Phase 9 — Game Feel & Polish
 
-**Status:** ⬜ NOT STARTED
+**Status:** 🟠 IMPLEMENTED — NEEDS MANUAL VALIDATION
 
 ## Objective
 
 Make existing gameplay satisfying rather than adding major new mechanics.
 
+Effects stay local to the object (particles, fireball, shockwave, camera offset). No full-screen tint or gate-shaped panel as hit / death / explosion feedback (`DECISIONS.md`).
+
 ## Shooting
 
-* [ ] Muzzle flashes
-* [ ] Projectile trails
-* [ ] Recoil
-* [ ] Shooting effects
+* [x] Muzzle flashes
+* [x] Projectile trails
+* [x] Recoil
+* [x] Shooting effects
+* [x] Distinct fire sound per weapon (pistol, SMG, shotgun, machine gun)
 
 ## Combat
 
-* [ ] Enemy hit flashes
-* [ ] Hit particles
-* [ ] Enemy death effects
-* [ ] Floating feedback where useful
+* [x] Enemy hit flashes
+* [x] Hit particles
+* [x] Enemy death effects
+* [x] Floating feedback where useful
 
 ## Gates
 
-* [ ] Gate activation animation
-* [ ] Number transitions
-* [ ] Positive gate effects
+* [x] Gate activation animation
+* [x] Number transitions
+* [x] Positive gate effects
 
 ## Boss
 
-* [ ] Screen shake
-* [ ] Strong impact feedback
-* [ ] Boss attack effects
-* [ ] Boss death explosion
-* [ ] Dramatic boss death feedback
+* [x] Screen shake
+* [x] Strong impact feedback
+* [x] Boss attack effects
+* [x] Boss death explosion
+* [x] Dramatic boss death feedback
+* [x] Boss death sound
 
 ## Haptics
 
-* [ ] Gate haptics
-* [ ] Combat haptics
-* [ ] Boss attack haptics
-* [ ] Boss death haptics
+* [x] Gate haptics
+* [x] Combat haptics
+* [x] Boss attack haptics
+* [x] Boss death haptics
+
+## Audio
+
+* [x] Weapon one-shots that stay readable at high fire rates
+* [x] Impact / explosion one-shots for slam, TNT, and boss death
 
 ## Performance
 
-* [ ] Particle limits
-* [ ] Projectile optimization
-* [ ] Object pooling where useful
-* [ ] Maintain target FPS under heavy gameplay
+* [x] Particle limits
+* [x] Projectile optimization
+* [x] Object pooling where useful
+* [x] Maintain target FPS under heavy gameplay
 
 ---
 
@@ -583,9 +592,5 @@ The intended core loop remains:
 # Current Next Action
 
 Manually validate:
-
-**Phase 8 — Procedural World & Difficulty**
-
-Then, and only then:
 
 **Phase 9 — Game Feel & Polish**

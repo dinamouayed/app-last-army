@@ -231,6 +231,7 @@ function drawOneBoss(
   );
   const alpha = 1 - death * 0.92;
   const screenScale = point.scale * (1 - death * 0.35);
+  const hit = boss.hitFlash > 0 ? boss.hitFlash / BOSS_CONFIG.hitFlashDuration : 0;
 
   if (alpha <= 0.02) {
     return;
@@ -271,6 +272,20 @@ function drawOneBoss(
         screenScale,
         alpha,
       );
+
+  if (hit > 0.02) {
+    resources.paints.hitFlash.setAlphaf(0.38 * hit * alpha);
+    canvas.drawOval(
+      {
+        x: point.screenX - layout.width * 0.28,
+        y: layout.headY,
+        width: layout.width * 0.56,
+        height: layout.height * 0.55,
+      },
+      resources.paints.hitFlash,
+    );
+    resources.paints.hitFlash.setAlphaf(1);
+  }
 
   if (!boss.dying) {
     drawBossHealthBar(

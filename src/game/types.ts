@@ -5,12 +5,13 @@ import type { HazardRuntimeState } from './entities/hazards';
 import type { WorldRuntimeState } from './world/worldState';
 import type { FormationSlot, DyingSoldierVisual } from './army/formation';
 import type { WeaponId } from './config/weapons';
+import type { FeelRuntimeState } from './feel/feedback';
 
 export type LaneIndex = 0 | 1 | 2;
 
 export type GameStatus = 'running' | 'paused' | 'gameover';
 
-export interface GameState extends CombatState, GateRuntimeState, BossRuntimeState, HazardRuntimeState, WorldRuntimeState {
+export interface GameState extends CombatState, GateRuntimeState, BossRuntimeState, HazardRuntimeState, WorldRuntimeState, FeelRuntimeState {
   status: GameStatus;
   elapsed: number;
   distance: number;

@@ -12,6 +12,7 @@ import { updateCombat } from '../systems/CombatSystem';
 import { spawnBossForDev } from '../systems/BossSystem';
 import { registerBossTap } from '../systems/BossTapStrikeSystem';
 import { updateParticles } from '../systems/EnemySystem';
+import { updateFeelClock, updateFeelVisuals } from '../systems/FeelSystem';
 import { resyncWorldAfterDistanceJump } from '../systems/WorldGenerator';
 import { updateRunner } from '../systems/RunnerSystem';
 import type { GameState, InputState } from '../types';
@@ -32,18 +33,22 @@ export class GameSession {
   }
 
   update(dt: number): void {
-    updateRunner(this.state, dt, GAME_CONFIG);
-    updateCombat(this.state, dt);
+    updateFeelClock(this.state, dt);
+    const simDt = dt * this.state.timeScale;
+    updateRunner(this.state, simDt, GAME_CONFIG);
+    updateCombat(this.state, simDt);
   }
 
   /** Keep the fireball, slam burst, and fading soldiers moving after the run has ended. */
   updateDeathFx(dt: number): void {
+    updateFeelClock(this.state, dt);
     this.state.elapsed += dt;
     if (this.state.slamBurst > 0) {
       this.state.slamBurst = Math.max(0, this.state.slamBurst - dt);
     }
     updateArmyVisuals(this.state, dt);
     updateParticles(this.state, dt);
+    updateFeelVisuals(this.state, dt);
   }
 
   beginSwipe(): void {

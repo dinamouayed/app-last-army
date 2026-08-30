@@ -15,6 +15,7 @@ import { GAME_CONFIG } from '../config/game';
 import { scaledEnemyApproachSpeed, scaledEnemyEngagingSpeed, scaledEnemyHp } from '../config/difficulty';
 import { acquireEntity, livingEnemyCount } from '../entities/combat';
 import type { Enemy, Particle } from '../entities/combat';
+import { pushFeedback } from '../feel/feedback';
 import { playerWorldZ } from '../math/camera';
 import { asphaltLaneCenterX, asphaltLaneWidth, clampWorldXToRoad } from '../math/roadBounds';
 import type { GameState, LaneIndex } from '../types';
@@ -200,6 +201,7 @@ export function killEnemy(state: GameState, enemy: Enemy): void {
   enemy.behavior = 'approaching';
   state.enemiesKilled += 1;
   spawnDeathParticles(state, enemy.x, enemy.z);
+  pushFeedback(state, 'enemyDeath');
 }
 
 function applyLateralSteer(
