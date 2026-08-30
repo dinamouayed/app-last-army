@@ -258,15 +258,10 @@ function bossEncounterIndex(state: GameState): number {
 }
 
 function executeSlam(state: GameState, boss: Boss): void {
-  const damage = bossSlamDamageForEncounter(
-    state.distance,
-    bossEncounterIndex(state),
-    state.armySize,
-  );
+  const damage = Math.max(1, Math.min(state.armySize, boss.slamDamage));
   const playerZ = playerWorldZ(state.distance, GAME_CONFIG.camera);
   const frontZ = armyFrontWorldZ(playerZ, state.formationSlots);
   const impactZ = (frontZ + playerZ) * 0.5;
-  boss.slamDamage = damage;
   removeSoldiersAtContact(state, damage, boss.x, impactZ);
   spawnSlamImpactParticles(state, boss.x, impactZ);
   state.slamBurst = BOSS_CONFIG.slamBurstDuration;

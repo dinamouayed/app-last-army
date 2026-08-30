@@ -51,11 +51,15 @@ export const BOSS_CONFIG = {
   slamBaseDamage: 12,
   slamDamagePerEncounter: 10,
   slamDamagePer100m: 2,
-  /** Share of the current army removed by a first-boss slam. */
+  /** Share of the army size at fight start, first boss. */
   firstBossArmyFraction: 0.24,
-  /** Share of the current army removed by later slams. */
+  /** Share of the army size at fight start, later bosses. */
   slamArmyFraction: 0.28,
   slamFractionPerEncounter: 0.06,
+  /** Extra start-army fraction that eases in with distance. */
+  slamDistanceFractionSpan: 0.08,
+  slamDistanceFractionScale: 8000,
+  slamFractionCap: 0.48,
   /** Minimum run distance between a boss spawn and the next gate spawn. */
   minGateDistanceSeparation: 56,
   /** World-depth clearance — gates/barrels within this range of the boss are removed. */
@@ -112,19 +116,42 @@ function slamArmyFraction(encounterIndex: number): number {
     return BOSS_CONFIG.firstBossArmyFraction;
   }
   return Math.min(
-    0.55,
+    BOSS_CONFIG.slamFractionCap,
     BOSS_CONFIG.slamArmyFraction
       + (encounterIndex - 1) * BOSS_CONFIG.slamFractionPerEncounter,
   );
 }
 
-export function bossSlamDamageForEncounter(
-  _distance: number,
+/** Fraction of the opening army removed by each slam this fight. */
+export function bossSlamStartArmyFraction(
+  distance: number,
   encounterIndex: number,
-  armySize: number,
 ): number {
-  const scaled = Math.ceil(armySize * slamArmyFraction(encounterIndex) - 1e-9);
-  return Math.max(1, Math.min(armySize, scaled));
+  const distanceBonus =
+    BOSS_CONFIG.slamDistanceFractionSpan
+    * (1 - Math.exp(-Math.max(0, distance) / BOSS_CONFIG.slamDistanceFractionScale));
+  return Math.min(
+    BOSS_CONFIG.slamFractionCap,
+    slamArmyFraction(encounterIndex) + distanceBonus,
+  );
+}
+
+/**
+ * Slam strength for one fight. Locked at spawn from opening army + distance.
+ * Later slams in the same fight keep this number so the boss does not fade
+ * to 25-soldier ticks after a huge opening hit.
+ */
+export function bossSlamDamageForEncounter(
+  distance: number,
+  encounterIndex: number,
+  armyAtStart: number,
+): number {
+  const opening = Math.max(1, Math.floor(armyAtStart));
+  const armyChunk = Math.ceil(
+    opening * bossSlamStartArmyFraction(distance, encounterIndex) - 1e-9,
+  );
+  const distanceFloor = bossSlamDamage(distance, encounterIndex);
+  return Math.max(1, armyChunk, distanceFloor);
 }
 
 export function bossTapFireballDamage(maxHp: number): number {

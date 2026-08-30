@@ -122,3 +122,19 @@ Boss max HP is `baseMaxHp + distance * hpPerDistance`. It does not scale with ar
 Raised `baseMaxHp` 850 → 1200 and `hpPerDistance` 2.8 → 3.8 so the tap-fireball remains a 25% boost instead of making the fight trivial.
 
 Slam cadence is tighter: idle `attackInterval` 3.2 → 1.7 (first boss 5.0 → 2.6), `holdBeforeAttack` 1.5 → 0.7, `recoverHoldDuration` 1.0 → 0.4. Wind-up and slam animation timings stay readable.
+
+---
+
+## 2026-08-30 — Boss slam uses opening army, not leftover army
+
+Each slam used to take a fraction of the *current* army. That felt right on the first hit (200k → 150k) and absurd later in the same fight (50 → 25) after a 500k opening.
+
+Slam damage is now locked when the boss spawns:
+
+```
+chunk = openingArmy * (encounterFraction + distanceEase)
+floor = base + encounterBonus + distanceBonus
+slam  = max(chunk, floor)
+```
+
+Every slam in that fight uses the same number (clamped to soldiers left). A huge opening still loses a huge chunk. A leftover of 50 still eats that same chunk, so the boss does not lose credibility. Distance raises both the fraction and the floor, so an undergrown army at 10 km is in more danger than one at 300 m. Growing still helps: the floor is what punishes a small army, not a tax on success.

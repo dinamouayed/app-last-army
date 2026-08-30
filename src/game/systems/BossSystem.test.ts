@@ -167,11 +167,40 @@ describe('boss and gate separation', () => {
 });
 
 describe('boss combat', () => {
-  it('scales slam damage with army size so large crowds visibly thin', () => {
-    expect(bossSlamDamageForEncounter(320, 0, 50)).toBe(12);
-    expect(bossSlamDamageForEncounter(320, 0, 5)).toBe(2);
-    expect(bossSlamDamageForEncounter(320, 0, 472)).toBe(114);
-    expect(bossSlamDamageForEncounter(320, 1, 50)).toBe(14);
+  it('locks slam damage to opening army and a distance floor', () => {
+    const firstSmall = bossSlamDamageForEncounter(320, 0, 50);
+    const firstTiny = bossSlamDamageForEncounter(320, 0, 5);
+    const firstHuge = bossSlamDamageForEncounter(320, 0, 200_000);
+    const laterSmall = bossSlamDamageForEncounter(10_000, 2, 50);
+    expect(firstSmall).toBeGreaterThanOrEqual(12);
+    expect(firstTiny).toBeGreaterThanOrEqual(12);
+    expect(firstHuge).toBeGreaterThan(40_000);
+    expect(laterSmall).toBeGreaterThan(firstSmall);
+  });
+
+  it('does not shrink slam damage after the opening army has already been thinned', () => {
+    const state = createGameState();
+    state.armySize = 200_000;
+    spawnBoss(state);
+    const locked = state.boss.slamDamage;
+    expect(locked).toBe(bossSlamDamageForEncounter(state.distance, 0, 200_000));
+
+    state.boss.behavior = 'fighting';
+    state.boss.attackPhase = 'slamHold';
+    state.boss.slamDamageApplied = false;
+    state.boss.attackPhaseT = BOSS_CONFIG.slamHoldDuration;
+    updateBoss(state, BOSS_CONFIG.slamImpactPause);
+    updateBoss(state, 0.02);
+    expect(state.armySize).toBe(200_000 - locked);
+    expect(state.boss.slamDamage).toBe(locked);
+
+    state.boss.attackPhase = 'slamHold';
+    state.boss.slamDamageApplied = false;
+    state.boss.attackPhaseT = BOSS_CONFIG.slamHoldDuration;
+    updateBoss(state, BOSS_CONFIG.slamImpactPause);
+    updateBoss(state, 0.02);
+    expect(state.armySize).toBe(200_000 - locked * 2);
+    expect(state.boss.slamDamage).toBe(locked);
   });
 
   it('reduces boss HP from projectile hits', () => {
